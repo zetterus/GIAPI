@@ -1,0 +1,51 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/nav.js"></script>
+</head>
+<body>
+    <h1>Register</h1>
+    <form id="registerForm">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required><br>
+        <label for="confirmPassword">Confirm Password:</label>
+        <input type="password" id="confirmPassword" name="confirmPassword" required><br>
+        <button type="submit">Register</button>
+    </form>
+    <p id="response"></p>
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const responseDiv = document.getElementById('response');
+            const form = document.getElementById('registerForm');
+
+            if (password !== confirmPassword) {
+                responseDiv.textContent = "Passwords do not match";
+                return;
+            }
+
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                responseDiv.textContent = "Registration successful!";
+                form.classList.add('hidden');
+            } else {
+                responseDiv.textContent = result.message || "Username already exists";
+            }
+        });
+    </script>
+</body>
+</html>
