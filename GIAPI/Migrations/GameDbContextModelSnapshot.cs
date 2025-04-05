@@ -48,7 +48,7 @@ namespace GIAPI.Migrations
 
                     b.HasIndex("ItemId");
 
-                    b.ToTable("Inventories");
+                    b.ToTable("Inventories", (string)null);
                 });
 
             modelBuilder.Entity("GIAPI.Models.InventoryBag", b =>
@@ -74,7 +74,7 @@ namespace GIAPI.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("InventoryBags");
+                    b.ToTable("InventoryBags", (string)null);
                 });
 
             modelBuilder.Entity("GIAPI.Models.ItemModel.Item", b =>
@@ -109,7 +109,7 @@ namespace GIAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Items");
+                    b.ToTable("Items", (string)null);
                 });
 
             modelBuilder.Entity("GIAPI.Models.ItemModel.ItemProperty", b =>
@@ -135,7 +135,7 @@ namespace GIAPI.Migrations
 
                     b.HasIndex("ItemId");
 
-                    b.ToTable("ItemProperties");
+                    b.ToTable("ItemProperties", (string)null);
                 });
 
             modelBuilder.Entity("GIAPI.Models.User", b =>
@@ -159,7 +159,7 @@ namespace GIAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("TransactionLog", b =>
@@ -189,7 +189,7 @@ namespace GIAPI.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("TransactionLogs");
+                    b.ToTable("TransactionLogs", (string)null);
                 });
 
             modelBuilder.Entity("GIAPI.Models.Inventory", b =>
