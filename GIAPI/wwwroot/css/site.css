@@ -104,8 +104,51 @@ nav {
             border-bottom: none; /* Убираем разделитель у последнего элемента */
         }
 
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+}
+
+.vertical-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+    max-width: 300px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
 .hidden {
     display: none;
+}
+
+.vertical-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+    max-width: 300px;
+}
+
+button {
+    padding: 5px 10px;
+    cursor: pointer;
 }
 
 /* Темы Material Design */

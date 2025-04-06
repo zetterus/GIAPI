@@ -23,11 +23,24 @@ public class InventoryController : ControllerBase
     public async Task<IActionResult> CreateBag([FromBody] CreateBagRequest request)
     {
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var userRole = User.FindFirst(ClaimTypes.Role)?.Value ?? "Player";
+        var rarity = Enum.Parse<Rarity>(request.Rarity, ignoreCase: true); // Явно string, игнорируем регистр
+
+        bool isAllowed = userRole switch
+        {
+            "Admin" => true,
+            "Moderator" => rarity <= Rarity.Legendary,
+            "Player" => rarity <= Rarity.Epic,
+            _ => false
+        };
+
+        if (!isAllowed) return Forbid("Insufficient role to create bag of this rarity");
+
         var bag = new InventoryBag
         {
             OwnerId = userId,
             Name = request.Name,
-            Rarity = request.Rarity
+            Rarity = rarity
         };
         _context.InventoryBags.Add(bag);
         await _context.SaveChangesAsync();
@@ -35,35 +48,96 @@ public class InventoryController : ControllerBase
     }
 
     // Получить доступные сумки
-    [HttpGet]
+    [HttpGet("bags")]
     public async Task<IActionResult> GetBags()
     {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-        var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null) return Unauthorized("User ID not found in token");
+        var userId = int.Parse(userIdClaim.Value);
 
-        IQueryable<InventoryBag> query;
-        if (userRole == "Admin")
-            query = _context.InventoryBags; // Админ видит все сумки
-        else
-            query = _context.InventoryBags
-                .Where(ib => ib.OwnerId == userId || ib.Accesses.Any(a => a.UserId == userId));
+        var userRoleString = User.FindFirst(ClaimTypes.Role)?.Value ?? "Player";
+        var userRole = Enum.Parse<Role>(userRoleString, ignoreCase: true);
+
+        IQueryable<InventoryBag> query = userRole switch
+        {
+            Role.Admin or Role.Moderator => _context.InventoryBags, // Админ и модератор видят все сумки
+            Role.Player => _context.InventoryBags.Where(ib => ib.OwnerId == userId || ib.Accesses.Any(a => a.UserId == userId)),
+            _ => _context.InventoryBags.Where(ib => false) // На всякий случай, если роль неизвестна
+        };
 
         var bags = await query
-            .Include(ib => ib.Inventories)
-            .ThenInclude(i => i.Item)
-            .ThenInclude(i => i.Properties)
+            .Select(b => new
+            {
+                b.Id,
+                b.Name,
+                b.Rarity,
+                MaxItems = b.MaxItems,
+                IsOwner = b.OwnerId == userId,
+                AccessLevelId = b.Accesses.FirstOrDefault(a => a.UserId == userId) != null
+                    ? b.Accesses.FirstOrDefault(a => a.UserId == userId).AccessLevel
+                    : (AccessLevel?)null, // Временное решение для AccessLevel
+                Items = b.Inventories.Select(i => new
+                {
+                    i.ItemId,
+                    i.Item.Name,
+                    i.Quantity
+                })
+            })
             .ToListAsync();
 
-        return Ok(bags.Select(b => new
+        // Обрабатываем AccessLevel в памяти
+        var result = bags.Select(b => new
         {
             b.Id,
             b.Name,
             b.Rarity,
-            MaxItems = b.MaxItems,
-            IsOwner = b.OwnerId == userId,
-            AccessLevel = b.Accesses.FirstOrDefault(a => a.UserId == userId)?.AccessLevel,
-            Items = b.Inventories.Select(i => new { i.ItemId, i.Item.Name, i.Quantity })
-        }));
+            b.MaxItems,
+            b.IsOwner,
+            AccessLevel = b.AccessLevelId.HasValue ? b.AccessLevelId.Value.ToString() : null, // Преобразуем в строку или null
+            b.Items
+        });
+
+        return Ok(result);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetInventory()
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var bags = await _context.InventoryBags
+            .Where(b => b.OwnerId == userId || b.Accesses.Any(a => a.UserId == userId))
+            .Select(b => new
+            {
+                b.Id,
+                b.Name,
+                b.Rarity,
+                Items = b.Inventories.Select(i => new { i.ItemId, i.Quantity, i.Item.Name })
+            })
+            .ToListAsync();
+        return Ok(bags);
+    }
+
+    // Передать сумку другому пользователю
+    [HttpPost("transfer")]
+    public async Task<IActionResult> TransferBag([FromBody] TransferBagRequest request)
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var bag = await CheckAccess(request.InventoryBagId, userId, User.FindFirst(ClaimTypes.Role)?.Value, fullEdit: true);
+        if (bag == null) return Forbid();
+
+        var newOwner = await _context.Users.FindAsync(request.NewOwnerId);
+        if (newOwner == null) return BadRequest("User not found");
+
+        bag.OwnerId = request.NewOwnerId;
+        bag.Owner = newOwner;
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
+
+    public class TransferBagRequest
+    {
+        public int InventoryBagId { get; set; }
+        public int NewOwnerId { get; set; }
     }
 
     // Добавить предмет в сумку
@@ -177,7 +251,7 @@ public class InventoryController : ControllerBase
 public class CreateBagRequest
 {
     public required string Name { get; set; }
-    public Rarity Rarity { get; set; }
+    public required string Rarity { get; set; } // Убедись, что это string
 }
 
 public class AddItemRequest

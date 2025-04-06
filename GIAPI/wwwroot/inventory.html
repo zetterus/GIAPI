@@ -1,0 +1,49 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Inventory</title>
+    <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/nav.js" defer></script>
+    <script src="/js/inventory.js" defer></script>
+</head>
+<body class="light1">
+    <main>
+        <h1>Inventory</h1>
+        <div class="vertical-form">
+            <label for="bag-select">Select Bag:</label>
+            <select id="bag-select"></select>
+        </div>
+        <div class="vertical-form">
+            <h2>Create New Bag</h2>
+            <label for="bag-name">Bag Name:</label>
+            <input type="text" id="bag-name">
+            <label for="bag-rarity">Rarity:</label>
+            <select id="bag-rarity">
+                <option value="Common">Common</option>
+                <option value="Rare">Rare</option>
+                <option value="Epic">Epic</option>
+                <option value="Legendary">Legendary</option>
+                <option value="Mythical">Mythical</option>
+            </select>
+            <button id="create-bag-btn">Create</button>
+        </div>
+        <table id="inventory-table">
+            <thead>
+                <tr>
+                    <th>Item Name</th>
+                    <th>Quantity</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <div class="vertical-form">
+            <button id="add-item-btn">Add Item</button>
+            <select id="item-select" class="hidden"></select>
+            <button id="share-bag-btn">Share Bag</button>
+            <button id="transfer-bag-btn">Transfer Ownership</button>
+        </div>
+    </main>
+</body>
+</html>
