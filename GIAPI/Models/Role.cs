@@ -1,6 +1,6 @@
 ﻿public enum Role
 {
-    Admin,    // Администратор
-    Moderator,  // Модератор
-    Player  // Обычный игрок
+    Admin,      // 0 - Администратор
+    Moderator,  // 1 - Модератор
+    Player      // 2 - Обычный игрок
 }

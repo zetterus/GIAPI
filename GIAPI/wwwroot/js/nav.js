@@ -1,5 +1,6 @@
 ﻿function createNavBar() {
     if (document.querySelector('nav')) return;
+    console.log('Creating navbar');
 
     const nav = document.createElement('nav');
 
@@ -7,13 +8,13 @@
     const navLeft = document.createElement('div');
     navLeft.className = 'nav-left';
     const ulLeft = document.createElement('ul');
-    const links = [
+    const leftLinks = [
         { text: 'Home', href: '/index.html' },
         { text: 'Login', href: '/login.html', class: 'auth-link' },
         { text: 'Register', href: '/register.html', class: 'auth-link' },
         { text: 'Inventory', href: '/inventory.html', class: 'auth-link hidden', id: 'inventory-link' }
     ];
-    links.forEach(link => {
+    leftLinks.forEach(link => {
         const li = document.createElement('li');
         const a = document.createElement('a');
         a.href = link.href;
@@ -63,7 +64,7 @@
     themeBtn.textContent = 'Theme';
     const themeList = document.createElement('ul');
     themeList.id = 'theme-list';
-    themeList.className = 'theme-list hidden';
+    themeList.className = 'theme-list hidden'; // Убедимся, что hidden есть изначально
     const themes = [
         { theme: 'light1', text: 'Light 1' },
         { theme: 'light2', text: 'Light 2' },
@@ -83,21 +84,17 @@
     navRight.append(authStatus, loginForm, logoutBtn, themeWrapper);
     nav.append(navLeft, navRight);
     document.body.insertBefore(nav, document.body.firstChild);
+    console.log('Navbar added to DOM');
 
-    // Логика
+    // Логика (без изменений)
     const token = localStorage.getItem('token');
-    const savedUsername = localStorage.getItem('username');
-    const savedRole = localStorage.getItem('role');
-
     function updateAuthUI(username, role) {
         const authLinks = document.querySelectorAll('.auth-link');
         if (username && role) {
             authStatus.textContent = `Logged in as ${username}, ${role}`;
             loginForm.classList.add('hidden');
             logoutBtn.classList.remove('hidden');
-            authLinks.forEach(link => {
-                link.id === 'inventory-link' ? link.classList.remove('hidden') : link.classList.add('hidden');
-            });
+            authLinks.forEach(link => link.id === 'inventory-link' ? link.classList.remove('hidden') : link.classList.add('hidden'));
         } else {
             authStatus.textContent = 'You are not authenticated';
             loginForm.classList.remove('hidden');
@@ -114,9 +111,10 @@
                 localStorage.setItem('role', data.role);
                 updateAuthUI(data.username, data.role);
             })
-            .catch(err => {
-                console.error(err);
-                localStorage.clear();
+            .catch(() => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('username');
+                localStorage.removeItem('role');
                 updateAuthUI(null, null);
             });
     } else {
@@ -127,35 +125,33 @@
         e.preventDefault();
         const username = usernameInput.value;
         const password = passwordInput.value;
-
-        try {
-            const response = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-            const result = await response.json();
-            if (response.ok) {
-                localStorage.setItem('token', result.token);
-                localStorage.setItem('username', username);
-                localStorage.setItem('role', result.role || 'Player');
-                updateAuthUI(username, result.role || 'Player');
-                loginForm.reset();
-            } else {
-                authStatus.textContent = result.message || 'Invalid credentials';
-            }
-        } catch (err) {
-            authStatus.textContent = 'Login failed';
-            console.error(err);
+        const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        const result = await response.json();
+        if (response.ok) {
+            localStorage.setItem('token', result.token);
+            localStorage.setItem('username', username);
+            localStorage.setItem('role', result.role || 'Player');
+            updateAuthUI(username, result.role || 'Player');
+            loginForm.reset();
+        } else {
+            authStatus.textContent = result.message || 'Invalid credentials';
         }
     });
 
     logoutBtn.addEventListener('click', () => {
-        localStorage.clear();
+        localStorage.removeItem('token');
+        localStorage.removeItem('username');
+        localStorage.removeItem('role');
         updateAuthUI(null, null);
     });
 
-    themeBtn.addEventListener('click', () => themeList.classList.toggle('hidden'));
+    themeBtn.addEventListener('click', () => {
+        themeList.classList.toggle('hidden');
+    });
 
     themeList.querySelectorAll('li').forEach(item => {
         item.addEventListener('click', () => {
@@ -171,6 +167,4 @@
     document.body.classList.add(savedTheme);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    createNavBar();
-});
+document.addEventListener('DOMContentLoaded', createNavBar);

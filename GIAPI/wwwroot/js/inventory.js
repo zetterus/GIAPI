@@ -2,22 +2,25 @@
     console.log('inventory.js loaded');
 
     const bagSelect = document.getElementById('bag-select');
+    const activateBagBtn = document.getElementById('activate-bag-btn');
     const createBagBtn = document.getElementById('create-bag-btn');
     const inventoryTable = document.querySelector('#inventory-table tbody');
     const addItemBtn = document.getElementById('add-item-btn');
     const itemSelect = document.getElementById('item-select');
     const shareBagBtn = document.getElementById('share-bag-btn');
     const transferBagBtn = document.getElementById('transfer-bag-btn');
-    let token = localStorage.getItem('token');
+    const token = localStorage.getItem('token');
+
+    // Проверка на наличие элементов
+    if (!bagSelect) console.error('bag-select not found');
+    if (!activateBagBtn) console.error('activate-bag-btn not found');
+    if (!createBagBtn) console.error('create-bag-btn not found');
 
     // Создание сумки
     createBagBtn.addEventListener('click', async () => {
         const name = document.getElementById('bag-name').value;
         const rarity = document.getElementById('bag-rarity').value;
-        if (!name) {
-            alert('Please enter a bag name');
-            return;
-        }
+        if (!name) return alert('Please enter a bag name');
         const response = await fetch('/api/inventory/create', {
             method: 'POST',
             headers: {
@@ -27,10 +30,10 @@
             body: JSON.stringify({ name, rarity })
         });
         if (response.ok) {
-            document.getElementById('bag-name').value = ''; // Очистить поле
+            document.getElementById('bag-name').value = '';
             loadBags();
         } else {
-            alert('Failed to create bag');
+            console.error('Create bag failed:', await response.text());
         }
     });
 
@@ -57,6 +60,12 @@
             body: JSON.stringify({ inventoryBagId: bagId, targetUserId: userId, accessLevel })
         });
         if (response.ok) alert('Bag shared!');
+    });
+
+    activateBagBtn.addEventListener('click', () => {
+        const bagId = parseInt(bagSelect.value);
+        if (!bagId) return alert('Please select a bag');
+        loadInventory(bagId);
     });
 
     // Передать сумку другому пользователю
@@ -104,8 +113,7 @@
 
     // Загрузка сумок
     async function loadBags() {
-        console.log('Loading bags with token:', token);
-        const response = await fetch('/api/inventory/bags', { // Изменили маршрут
+        const response = await fetch('/api/inventory/bags', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         console.log('Response status:', response.status);
@@ -116,12 +124,11 @@
         const bags = await response.json();
         console.log('Bags loaded:', bags);
         bagSelect.innerHTML = bags.map(b => `<option value="${b.id}">${b.name} (${b.rarity})</option>`).join('');
-        if (bags.length > 0) loadInventory(bags[0].id);
     }
 
     // Загрузка содержимого сумки
     async function loadInventory(bagId) {
-        const response = await fetch('/api/inventory', { // Оставляем /api/inventory
+        const response = await fetch('/api/inventory', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!response.ok) {
