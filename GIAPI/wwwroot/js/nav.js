@@ -12,7 +12,9 @@
         { text: 'Home', href: '/index.html' },
         { text: 'Login', href: '/login.html', class: 'auth-link' },
         { text: 'Register', href: '/register.html', class: 'auth-link' },
-        { text: 'Inventory', href: '/inventory.html', class: 'auth-link hidden', id: 'inventory-link' }
+        { text: 'Inventory', href: '/inventory.html', class: 'auth-link hidden', id: 'inventory-link' },
+        { text: 'Admin Panel', href: '/admin.html', class: 'auth-link hidden', id: 'admin-link' },
+        { text: 'Moderator Panel', href: '/moderator.html', class: 'auth-link hidden', id: 'moderator-link' }
     ];
     leftLinks.forEach(link => {
         const li = document.createElement('li');
@@ -64,7 +66,7 @@
     themeBtn.textContent = 'Theme';
     const themeList = document.createElement('ul');
     themeList.id = 'theme-list';
-    themeList.className = 'theme-list hidden'; // Убедимся, что hidden есть изначально
+    themeList.className = 'theme-list hidden';
     const themes = [
         { theme: 'light1', text: 'Light 1' },
         { theme: 'light2', text: 'Light 2' },
@@ -86,20 +88,33 @@
     document.body.insertBefore(nav, document.body.firstChild);
     console.log('Navbar added to DOM');
 
-    // Логика (без изменений)
+    // Логика
     const token = localStorage.getItem('token');
     function updateAuthUI(username, role) {
         const authLinks = document.querySelectorAll('.auth-link');
+        const inventoryLink = document.getElementById('inventory-link');
+        const adminLink = document.getElementById('admin-link');
+        const moderatorLink = document.getElementById('moderator-link');
+
         if (username && role) {
             authStatus.textContent = `Logged in as ${username}, ${role}`;
             loginForm.classList.add('hidden');
             logoutBtn.classList.remove('hidden');
-            authLinks.forEach(link => link.id === 'inventory-link' ? link.classList.remove('hidden') : link.classList.add('hidden'));
+            authLinks.forEach(link => link.classList.add('hidden')); // Скрываем все по умолчанию
+            inventoryLink.classList.remove('hidden'); // Показываем Inventory всем авторизованным
+            if (role === 'Admin') adminLink.classList.remove('hidden'); // Только для админа
+            if (role === 'Moderator') moderatorLink.classList.remove('hidden'); // Только для модератора
         } else {
             authStatus.textContent = 'You are not authenticated';
             loginForm.classList.remove('hidden');
             logoutBtn.classList.add('hidden');
-            authLinks.forEach(link => link.id === 'inventory-link' ? link.classList.add('hidden') : link.classList.remove('hidden'));
+            authLinks.forEach(link => {
+                if (link.id === 'inventory-link' || link.id === 'admin-link' || link.id === 'moderator-link') {
+                    link.classList.add('hidden');
+                } else {
+                    link.classList.remove('hidden');
+                }
+            });
         }
     }
 
