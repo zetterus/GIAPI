@@ -1,6 +1,7 @@
 ﻿document.addEventListener('DOMContentLoaded', () => {
     console.log('inventory.js loaded');
 
+    // Объявляем все элементы
     const bagSelect = document.getElementById('bag-select');
     const activateBagBtn = document.getElementById('activate-bag-btn');
     const createBagBtn = document.getElementById('create-bag-btn');
@@ -9,13 +10,23 @@
     const itemSelect = document.getElementById('item-select');
     const shareBagBtn = document.getElementById('share-bag-btn');
     const transferBagBtn = document.getElementById('transfer-bag-btn');
+    const bagRaritySelect = document.getElementById('bag-rarity'); // Теперь объявлено корректно
     const token = localStorage.getItem('token');
-    const role = localStorage.getItem('role') || 'Player'; // Получаем роль из localStorage
+    const role = localStorage.getItem('role') || 'Player';
 
-    // Проверка на наличие элементов
+    // Проверка наличия элементов
     if (!bagSelect) console.error('bag-select not found');
     if (!activateBagBtn) console.error('activate-bag-btn not found');
     if (!createBagBtn) console.error('create-bag-btn not found');
+    if (!inventoryTable) console.error('inventory-table tbody not found');
+    if (!addItemBtn) console.error('add-item-btn not found');
+    if (!itemSelect) console.error('item-select not found');
+    if (!shareBagBtn) console.error('share-bag-btn not found');
+    if (!transferBagBtn) console.error('transfer-bag-btn not found');
+    if (!bagRaritySelect) {
+        console.error('bag-rarity not found in DOM');
+        return;
+    }
 
     // Доступные редкости в зависимости от роли
     const rarityOptions = {
@@ -41,21 +52,31 @@
 
     // Заполняем select для редкости
     function loadRarityOptions() {
-        const options = rarityOptions[role] || rarityOptions['Player']; // Используем роль из localStorage
+        console.log('Loading rarity options for role:', role);
+        const options = rarityOptions[role] || rarityOptions['Player'];
         bagRaritySelect.innerHTML = options.map(opt => `<option value="${opt.value}">${opt.text}</option>`).join('');
     }
 
     // Загрузка сумок
     async function loadBags() {
+        if (!token) {
+            console.error('No token found in localStorage');
+            bagSelect.innerHTML = '<option value="">Please log in</option>';
+            return;
+        }
         const response = await fetch('/api/inventory/bags', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!response.ok) {
             console.error('Error:', await response.text());
+            bagSelect.innerHTML = '<option value="">Error loading bags</option>';
             return;
         }
         const bags = await response.json();
-        bagSelect.innerHTML = bags.map(b => `<option value="${b.id}">${b.name} (${b.rarity})</option>`).join('');
+        console.log('Loaded bags:', bags);
+        bagSelect.innerHTML = bags.length > 0
+            ? bags.map(b => `<option value="${b.id}">${b.name} (${b.rarity})</option>`).join('')
+            : '<option value="">No bags available</option>';
     }
 
     // Загрузка содержимого сумки
@@ -69,20 +90,29 @@
         }
         const bags = await response.json();
         const bag = bags.find(b => b.id === bagId);
-        inventoryTable.innerHTML = bag.items.map(i => `
-            <tr>
-                <td>${i.name}</td>
-                <td>${i.quantity}</td>
-                <td>
-                    <button onclick="moveItem(${bagId}, ${i.itemId})">Move</button>
-                    <button onclick="removeItem(${bagId}, ${i.itemId})">Remove</button>
-                </td>
-            </tr>
-        `).join('');
+        if (bag) {
+            inventoryTable.innerHTML = bag.items.map(i => `
+                <tr>
+                    <td>${i.name}</td>
+                    <td>${i.quantity}</td>
+                    <td>
+                        <button onclick="moveItem(${bagId}, ${i.itemId})">Move</button>
+                        <button onclick="removeItem(${bagId}, ${i.itemId})">Remove</button>
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            inventoryTable.innerHTML = '<tr><td colspan="3">Bag not found</td></tr>';
+        }
     }
 
+    // Загрузка предметов для добавления
     async function loadItems() {
         const response = await fetch('/api/item', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!response.ok) {
+            console.error('Error loading items:', await response.text());
+            return;
+        }
         const items = await response.json();
         itemSelect.innerHTML = items.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
         itemSelect.addEventListener('change', async (e) => {
@@ -103,28 +133,10 @@
         }, { once: true });
     }
 
-    async function updateRarityOptions() {
-        const response = await fetch('/api/user/role', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (!response.ok) {
-            console.error('Failed to get role:', response.status);
-            return;
-        }
-        const { role } = await response.json();
-        const options = {
-            'Player': ['Common', 'Rare', 'Epic'],
-            'Moderator': ['Common', 'Rare', 'Epic', 'Legendary'],
-            'Admin': ['Common', 'Rare', 'Epic', 'Legendary', 'Mythical']
-        };
-        const raritySelect = document.getElementById('bag-rarity');
-        raritySelect.innerHTML = options[role].map(r => `<option value="${r}">${r}</option>`).join('');
-    }
-
     // Создание сумки
     createBagBtn.addEventListener('click', async () => {
         const name = document.getElementById('bag-name').value;
-        const rarity = document.getElementById('bag-rarity').value;
+        const rarity = bagRaritySelect.value;
         if (!name) return alert('Please enter a bag name');
         const response = await fetch('/api/inventory/create', {
             method: 'POST',
@@ -142,8 +154,12 @@
         }
     });
 
-    // Выбор сумки
-    //bagSelect.addEventListener('change', (e) => loadInventory(parseInt(e.target.value)));
+    // Обработчик для кнопки Activate
+    activateBagBtn.addEventListener('click', () => {
+        const bagId = parseInt(bagSelect.value);
+        if (!bagId) return alert('Please select a bag');
+        loadInventory(bagId);
+    });
 
     // Добавление предмета
     addItemBtn.addEventListener('click', () => {
@@ -165,13 +181,6 @@
             body: JSON.stringify({ inventoryBagId: bagId, targetUserId: userId, accessLevel })
         });
         if (response.ok) alert('Bag shared!');
-    });
-
-    // Обработчик для кнопки Activate
-    activateBagBtn.addEventListener('click', () => {
-        const bagId = parseInt(bagSelect.value);
-        if (!bagId) return alert('Please select a bag');
-        loadInventory(bagId);
     });
 
     // Передать сумку другому пользователю
@@ -217,7 +226,7 @@
         if (response.ok) loadInventory(bagId);
     };
 
-    // Загрузка сумок при старте
-    loadBags();
+    // Загружаем сумки и редкости при старте
     loadRarityOptions();
+    loadBags();
 });

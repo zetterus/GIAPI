@@ -53,17 +53,14 @@ public class InventoryController : ControllerBase
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim == null) return Unauthorized("User ID not found in token");
-        var userId = int.Parse(userIdClaim.Value);
+        var userId = int.Parse(userIdClaim.Value); // userId как int
 
         var userRoleString = User.FindFirst(ClaimTypes.Role)?.Value ?? "Player";
         var userRole = Enum.Parse<Role>(userRoleString, ignoreCase: true);
 
-        IQueryable<InventoryBag> query = userRole switch
-        {
-            Role.Admin or Role.Moderator => _context.InventoryBags, // Админ и модератор видят все сумки
-            Role.Player => _context.InventoryBags.Where(ib => ib.OwnerId == userId || ib.Accesses.Any(a => a.UserId == userId)),
-            _ => _context.InventoryBags.Where(ib => false) // На всякий случай, если роль неизвестна
-        };
+        // Все роли видят только свои сумки и поделённые с ними
+        IQueryable<InventoryBag> query = _context.InventoryBags
+            .Where(ib => ib.OwnerId == userId || ib.Accesses.Any(a => a.UserId == userId));
 
         var bags = await query
             .Select(b => new
@@ -75,13 +72,13 @@ public class InventoryController : ControllerBase
                 IsOwner = b.OwnerId == userId,
                 AccessLevelId = b.Accesses.FirstOrDefault(a => a.UserId == userId) != null
                     ? b.Accesses.FirstOrDefault(a => a.UserId == userId).AccessLevel
-                    : (AccessLevel?)null, // Временное решение для AccessLevel
+                    : (AccessLevel?)null,
                 Items = b.Inventories.Select(i => new
                 {
                     i.ItemId,
                     i.Item.Name,
                     i.Quantity
-                })
+                }).ToList()
             })
             .ToListAsync();
 
@@ -93,7 +90,7 @@ public class InventoryController : ControllerBase
             b.Rarity,
             b.MaxItems,
             b.IsOwner,
-            AccessLevel = b.AccessLevelId.HasValue ? b.AccessLevelId.Value.ToString() : null, // Преобразуем в строку или null
+            AccessLevel = b.AccessLevelId.HasValue ? b.AccessLevelId.Value.ToString() : null,
             b.Items
         });
 
