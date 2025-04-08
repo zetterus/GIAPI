@@ -28,6 +28,13 @@
     });
     navLeft.appendChild(ulLeft);
 
+    // Active Bag (центр навигации)
+    const activeBag = document.createElement('div');
+    activeBag.id = 'active-bag';
+    activeBag.style.textAlign = 'center';
+    activeBag.style.flex = '1'; // Растягиваем центр
+    activeBag.textContent = 'No bag active';
+
     // Nav-right
     const navRight = document.createElement('div');
     navRight.className = 'nav-right';
@@ -84,11 +91,15 @@
     themeWrapper.append(themeBtn, themeList);
 
     navRight.append(authStatus, loginForm, logoutBtn, themeWrapper);
-    nav.append(navLeft, navRight);
+
+    // Собираем навигацию: левая часть, центр (active-bag), правая часть
+    nav.append(navLeft, activeBag, navRight);
+    nav.style.display = 'flex'; // Для равномерного распределения
+    nav.style.justifyContent = 'space-between'; // Размещаем элементы
     document.body.insertBefore(nav, document.body.firstChild);
     console.log('Navbar added to DOM');
 
-    // Логика
+    // Логика авторизации
     const token = localStorage.getItem('token');
     function updateAuthUI(username, role) {
         const authLinks = document.querySelectorAll('.auth-link');
@@ -100,10 +111,10 @@
             authStatus.textContent = `Logged in as ${username}, ${role}`;
             loginForm.classList.add('hidden');
             logoutBtn.classList.remove('hidden');
-            authLinks.forEach(link => link.classList.add('hidden')); // Скрываем все по умолчанию
-            inventoryLink.classList.remove('hidden'); // Показываем Inventory всем авторизованным
-            if (role === 'Admin') adminLink.classList.remove('hidden'); // Только для админа
-            if (role === 'Moderator') moderatorLink.classList.remove('hidden'); // Только для модератора
+            authLinks.forEach(link => link.classList.add('hidden'));
+            inventoryLink.classList.remove('hidden');
+            if (role === 'Admin') adminLink.classList.remove('hidden');
+            if (role === 'Moderator') moderatorLink.classList.remove('hidden');
         } else {
             authStatus.textContent = 'You are not authenticated';
             loginForm.classList.remove('hidden');

@@ -10,7 +10,9 @@
     const itemSelect = document.getElementById('item-select');
     const shareBagBtn = document.getElementById('share-bag-btn');
     const transferBagBtn = document.getElementById('transfer-bag-btn');
-    const bagRaritySelect = document.getElementById('bag-rarity'); // Теперь объявлено корректно
+    const bagRaritySelect = document.getElementById('bag-rarity');
+    const activeBagDisplay = document.getElementById('active-bag'); // Теперь в навигации
+    const inventoryTableTitle = document.getElementById('inventory-table-title');
     const token = localStorage.getItem('token');
     const role = localStorage.getItem('role') || 'Player';
 
@@ -23,23 +25,20 @@
     if (!itemSelect) console.error('item-select not found');
     if (!shareBagBtn) console.error('share-bag-btn not found');
     if (!transferBagBtn) console.error('transfer-bag-btn not found');
-    if (!bagRaritySelect) {
-        console.error('bag-rarity not found in DOM');
-        return;
-    }
+    if (!bagRaritySelect) console.error('bag-rarity not found');
+    if (!activeBagDisplay) console.error('active-bag not found');
+    if (!inventoryTableTitle) console.error('inventory-table-title not found');
 
     // Доступные редкости в зависимости от роли
     const rarityOptions = {
         'Player': [
             { value: 'Common', text: 'Common' },
-            { value: 'Rare', text: 'Rare' },
-            { value: 'Epic', text: 'Epic' }
+            { value: 'Rare', text: 'Rare' }
         ],
         'Moderator': [
             { value: 'Common', text: 'Common' },
             { value: 'Rare', text: 'Rare' },
-            { value: 'Epic', text: 'Epic' },
-            { value: 'Legendary', text: 'Legendary' }
+            { value: 'Epic', text: 'Epic' }
         ],
         'Admin': [
             { value: 'Common', text: 'Common' },
@@ -79,7 +78,7 @@
             : '<option value="">No bags available</option>';
     }
 
-    // Загрузка содержимого сумки
+    // Загрузка содержимого сумки и обновление активной сумки
     async function loadInventory(bagId) {
         const response = await fetch('/api/inventory/bags', {
             headers: { 'Authorization': `Bearer ${token}` }
@@ -101,8 +100,12 @@
                     </td>
                 </tr>
             `).join('');
+            activeBagDisplay.textContent = `Active Bag: ${bag.name}`; // Обновляем в навигации
+            inventoryTableTitle.textContent = `Items in ${bag.name}`;
         } else {
             inventoryTable.innerHTML = '<tr><td colspan="3">Bag not found</td></tr>';
+            activeBagDisplay.textContent = 'No bag active';
+            inventoryTableTitle.textContent = 'Items in Selected Bag';
         }
     }
 
@@ -172,6 +175,7 @@
         const userId = parseInt(prompt('Enter user ID to share with:'));
         const accessLevel = prompt('Enter access level (ViewOnly, FullEdit):');
         const bagId = parseInt(bagSelect.value);
+        if (!bagId) return alert('Please select a bag');
         const response = await fetch('/api/inventory/share', {
             method: 'POST',
             headers: {
@@ -187,6 +191,7 @@
     transferBagBtn.addEventListener('click', async () => {
         const newOwnerId = parseInt(prompt('Enter new owner ID:'));
         const bagId = parseInt(bagSelect.value);
+        if (!bagId) return alert('Please select a bag');
         const response = await fetch('/api/inventory/transfer', {
             method: 'POST',
             headers: {
