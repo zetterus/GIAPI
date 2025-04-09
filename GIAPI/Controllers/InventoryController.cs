@@ -162,33 +162,56 @@ public class InventoryController : ControllerBase
         return Ok();
     }
 
+    // Поиск сумок по имени
+    [HttpGet("search-bags")]
+    public async Task<IActionResult> SearchBags(string query)
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        var bags = await _context.InventoryBags
+            .Where(b => b.Name.Contains(query) && (b.OwnerId == userId || b.Accesses.Any(a => a.UserId == userId)))
+            .Join(_context.Users,
+                bag => bag.OwnerId,
+                user => user.Id,
+                (bag, user) => new
+                {
+                    bag.Id,
+                    bag.Name,
+                    OwnerUsername = user.Username
+                })
+            .Take(10) // Лимит на 10 предложений
+            .ToListAsync();
+        return Ok(bags);
+    }
+
     // Переложить предмет в другую сумку
     [HttpPost("move")]
     public async Task<IActionResult> MoveItem([FromBody] MoveItemRequest request)
     {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-        var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+        var fromBag = await _context.InventoryBags
+            .Include(b => b.Inventories)
+            .FirstOrDefaultAsync(b => b.Id == request.FromBagId);
+        var toBag = await _context.InventoryBags
+            .Include(b => b.Inventories)
+            .FirstOrDefaultAsync(b => b.Id == request.ToBagId);
 
-        var fromBag = await CheckAccess(request.FromBagId, userId, userRole, fullEdit: true);
-        var toBag = await CheckAccess(request.ToBagId, userId, userRole, fullEdit: true);
-        if (fromBag == null || toBag == null) return Forbid();
-
+        if (fromBag == null || toBag == null) return NotFound("Bag not found");
         var item = fromBag.Inventories.FirstOrDefault(i => i.ItemId == request.ItemId);
-        if (item == null) return NotFound("Item not in source bag");
+        if (item == null || item.Quantity < request.Quantity) return BadRequest("Invalid item or quantity");
 
-        if (toBag.Inventories.Sum(i => i.Quantity) >= toBag.MaxItems)
-            return BadRequest("Target bag is full");
+        // Уменьшаем количество в исходной сумке
+        item.Quantity -= request.Quantity;
+        if (item.Quantity == 0) _context.Inventories.Remove(item);
 
-        if (item.Quantity > 1)
-            item.Quantity--;
-        else
-            fromBag.Inventories.Remove(item);
-
+        // Добавляем или увеличиваем количество в целевой сумке
         var toItem = toBag.Inventories.FirstOrDefault(i => i.ItemId == request.ItemId);
         if (toItem != null)
-            toItem.Quantity++;
+        {
+            toItem.Quantity += request.Quantity;
+        }
         else
-            toBag.Inventories.Add(new Inventory { ItemId = request.ItemId, Quantity = 1 });
+        {
+            toBag.Inventories.Add(new Inventory { ItemId = request.ItemId, Quantity = request.Quantity });
+        }
 
         await _context.SaveChangesAsync();
         return Ok();
@@ -196,21 +219,17 @@ public class InventoryController : ControllerBase
 
     // Удалить предмет из сумки
     [HttpDelete("remove/{bagId}/{itemId}")]
-    public async Task<IActionResult> RemoveItem(int bagId, int itemId)
+    public async Task<IActionResult> RemoveItem(int bagId, int itemId, [FromBody] RemoveItemRequest request)
     {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-        var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
-        var bag = await CheckAccess(bagId, userId, userRole, fullEdit: true);
-        if (bag == null) return Forbid();
-
+        var bag = await _context.InventoryBags
+            .Include(b => b.Inventories)
+            .FirstOrDefaultAsync(b => b.Id == bagId);
+        if (bag == null) return NotFound("Bag not found");
         var item = bag.Inventories.FirstOrDefault(i => i.ItemId == itemId);
-        if (item == null) return NotFound("Item not in bag");
+        if (item == null || item.Quantity < request.Quantity) return BadRequest("Invalid item or quantity");
 
-        if (item.Quantity > 1)
-            item.Quantity--;
-        else
-            bag.Inventories.Remove(item);
-
+        item.Quantity -= request.Quantity;
+        if (item.Quantity == 0) _context.Inventories.Remove(item);
         await _context.SaveChangesAsync();
         return Ok();
     }
@@ -262,4 +281,10 @@ public class MoveItemRequest
     public int FromBagId { get; set; }
     public int ToBagId { get; set; }
     public int ItemId { get; set; }
+    public int Quantity { get; set; }
+}
+
+public class RemoveItemRequest
+{
+    public int Quantity { get; set; }
 }

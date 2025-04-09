@@ -1,4 +1,5 @@
-﻿body {
+﻿/* Базовые стили */
+body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 20px;
@@ -39,20 +40,20 @@
 nav {
     display: flex;
     justify-content: space-between;
-    padding: 10px;
     align-items: center;
+    padding: 10px;
 }
 
 body.light1 nav {
-    background-color: #333333;
+    background-color: #777;
 }
 
 body.light2 nav {
-    background-color: #404040;
+    background-color: #53b038;
 }
 
 body.light3 nav {
-    background-color: #505050;
+    background-color: #bbbd35;
 }
 
 body.dark1 nav {
@@ -72,74 +73,15 @@ body.dark3 nav {
     margin: 0;
     padding: 0;
     display: flex;
-    gap: 5px; /* Уменьшенный зазор для компактного меню */
+    gap: 5px;
 }
 
 .nav-left a {
     text-decoration: none;
-    padding: 5px 10px; /* Отступы как у кнопок */
-    border-radius: 3px; /* Скругленные углы */
-    transition: background-color 0.2s; /* Плавный переход */
-}
-
-body.light1 .nav-left a {
-    color: #ffffff;
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-body.light2 .nav-left a {
-    color: #ffffff;
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-body.light3 .nav-left a {
-    color: #ffffff;
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-body.dark1 .nav-left a {
-    color: #dddddd;
-    background-color: rgba(0, 0, 0, 0.2);
-}
-
-body.dark2 .nav-left a {
-    color: #dddddd;
-    background-color: rgba(0, 0, 0, 0.2);
-}
-
-body.dark3 .nav-left a {
-    color: #dddddd;
-    background-color: rgba(0, 0, 0, 0.2);
-}
-
-body.light1 .nav-left a:hover {
-    color: #dddddd;
-    background-color: rgba(255, 255, 255, 0.3);
-}
-
-body.light2 .nav-left a:hover {
-    color: #dddddd;
-    background-color: rgba(255, 255, 255, 0.3);
-}
-
-body.light3 .nav-left a:hover {
-    color: #dddddd;
-    background-color: rgba(255, 255, 255, 0.3);
-}
-
-body.dark1 .nav-left a:hover {
-    color: #ffffff;
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-body.dark2 .nav-left a:hover {
-    color: #ffffff;
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-body.dark3 .nav-left a:hover {
-    color: #ffffff;
-    background-color: rgba(255, 255, 255, 0.1);
+    padding: 5px 10px;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+    display: inline-block;
 }
 
 .nav-right {
@@ -172,11 +114,118 @@ body.dark3 .nav-right {
     color: #dddddd;
 }
 
+/* Все кнопки и ссылки навигации */
+button, .nav-left a {
+    padding: 5px 10px;
+    cursor: pointer;
+    border: none;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+}
+
+body.light1 button, body.light1 .nav-left a {
+    background-color: #007bff;
+    color: white;
+}
+
+    body.light1 button:hover, body.light1 .nav-left a:hover {
+        background-color: #0056b3;
+    }
+
+body.light2 button, body.light2 .nav-left a {
+    background-color: #0066cc;
+    color: white;
+}
+
+    body.light2 button:hover, body.light2 .nav-left a:hover {
+        background-color: #004d99;
+    }
+
+body.light3 button, body.light3 .nav-left a {
+    background-color: #005cbf;
+    color: white;
+}
+
+    body.light3 button:hover, body.light3 .nav-left a:hover {
+        background-color: #004080;
+    }
+
+body.dark1 button, body.dark1 .nav-left a {
+    background-color: #0a0d11;
+    color: #ffffff;
+}
+
+    body.dark1 button:hover, body.dark1 .nav-left a:hover {
+        background-color: #4682b4;
+    }
+
+body.dark2 button, body.dark2 .nav-left a {
+    background-color: #2a2a2a;
+    color: #ffffff;
+}
+
+    body.dark2 button:hover, body.dark2 .nav-left a:hover {
+        background-color: #3a76a8;
+    }
+
+body.dark3 button, body.dark3 .nav-left a {
+    background-color: #777;
+    color: #ffffff;
+}
+
+    body.dark3 button:hover, body.dark3 .nav-left a:hover {
+        background-color: #2e6a9c;
+    }
+
+/* Форма авторизации */
 .auth-form {
     display: flex;
     gap: 10px;
 }
 
+body.light1 .auth-form input {
+    background-color: #f9f9f9;
+    color: #000000;
+    border: 1px solid #ddd;
+    padding: 5px;
+}
+
+body.light2 .auth-form input {
+    background-color: #e9e9e9;
+    color: #000000;
+    border: 1px solid #ccc;
+    padding: 5px;
+}
+
+body.light3 .auth-form input {
+    background-color: #d9d9d9;
+    color: #000000;
+    border: 1px solid #bbb;
+    padding: 5px;
+}
+
+body.dark1 .auth-form input {
+    background-color: #555555;
+    color: #ffffff;
+    border: 1px solid #777;
+    padding: 5px;
+}
+
+body.dark2 .auth-form input {
+    background-color: #4a4a4a;
+    color: #dddddd;
+    border: 1px solid #666;
+    padding: 5px;
+}
+
+body.dark3 .auth-form input {
+    background-color: #3f3f3f;
+    color: #cccccc;
+    border: 1px solid #555;
+    padding: 5px;
+}
+
+/* Выпадающий список тем */
 .theme-wrapper {
     position: relative;
 }
@@ -189,41 +238,47 @@ body.dark3 .nav-right {
     margin: 5px 0 0;
     padding: 5px;
     border-radius: 3px;
-    z-index: 10; /* Поверх других элементов */
+    z-index: 10;
 }
 
     .theme-list.hidden {
-        display: none; /* Скрыт по умолчанию */
+        display: none;
     }
 
 body.light1 .theme-list {
     background-color: #f9f9f9;
     color: #000000;
+    border: 1px solid #ddd;
 }
 
 body.light2 .theme-list {
     background-color: #e9e9e9;
     color: #000000;
+    border: 1px solid #ccc;
 }
 
 body.light3 .theme-list {
     background-color: #d9d9d9;
     color: #000000;
+    border: 1px solid #bbb;
 }
 
 body.dark1 .theme-list {
     background-color: #555555;
     color: #ffffff;
+    border: 1px solid #777;
 }
 
 body.dark2 .theme-list {
     background-color: #4a4a4a;
     color: #dddddd;
+    border: 1px solid #666;
 }
 
 body.dark3 .theme-list {
     background-color: #3f3f3f;
     color: #cccccc;
+    border: 1px solid #555;
 }
 
 .theme-list li {
@@ -231,9 +286,29 @@ body.dark3 .theme-list {
     cursor: pointer;
 }
 
-    .theme-list li:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-    }
+body.light1 .theme-list li:hover {
+    background-color: #e0e0e0;
+}
+
+body.light2 .theme-list li:hover {
+    background-color: #d0d0d0;
+}
+
+body.light3 .theme-list li:hover {
+    background-color: #c0c0c0;
+}
+
+body.dark1 .theme-list li:hover {
+    background-color: #666666;
+}
+
+body.dark2 .theme-list li:hover {
+    background-color: #5a5a5a;
+}
+
+body.dark3 .theme-list li:hover {
+    background-color: #4f4f4f;
+}
 
 /* Колонки */
 .columns {
@@ -265,17 +340,17 @@ body.light3 .column {
 
 body.dark1 .column {
     background-color: #555555;
-    border: 1px solid #777777;
+    border: 1px solid #777;
 }
 
 body.dark2 .column {
     background-color: #4a4a4a;
-    border: 1px solid #666666;
+    border: 1px solid #666;
 }
 
 body.dark3 .column {
     background-color: #3f3f3f;
-    border: 1px solid #555555;
+    border: 1px solid #555;
 }
 
 /* Форма */
@@ -284,6 +359,48 @@ body.dark3 .column {
     flex-direction: column;
     gap: 10px;
     max-width: 300px;
+}
+
+body.light1 .vertical-form input, body.light1 .vertical-form select {
+    background-color: #f9f9f9;
+    color: #000000;
+    border: 1px solid #ddd;
+    padding: 5px;
+}
+
+body.light2 .vertical-form input, body.light2 .vertical-form select {
+    background-color: #e9e9e9;
+    color: #000000;
+    border: 1px solid #ccc;
+    padding: 5px;
+}
+
+body.light3 .vertical-form input, body.light3 .vertical-form select {
+    background-color: #d9d9d9;
+    color: #000000;
+    border: 1GRApx solid #bbb;
+    padding: 5px;
+}
+
+body.dark1 .vertical-form input, body.dark1 .vertical-form select {
+    background-color: #555555;
+    color: #ffffff;
+    border: 1px solid #777;
+    padding: 5px;
+}
+
+body.dark2 .vertical-form input, body.dark2 .vertical-form select {
+    background-color: #4a4a4a;
+    color: #dddddd;
+    border: 1px solid #666;
+    padding: 5px;
+}
+
+body.dark3 .vertical-form input, body.dark3 .vertical-form select {
+    background-color: #3f3f3f;
+    color: #cccccc;
+    border: 1px solid #555;
+    padding: 5px;
 }
 
 /* Таблица */
@@ -300,30 +417,31 @@ table {
 th, td {
     padding: 8px;
     text-align: left;
+    white-space: nowrap;
 }
 
-body.light1 th, body.light1 td {
+body.light1 table, body.light1 th, body.light1 td {
     border: 1px solid #ddd;
 }
 
-body.light2 th, body.light2 td {
+body.light2 table, body.light2 th, body.light2 td {
     border: 1px solid #ccc;
 }
 
-body.light3 th, body.light3 td {
+body.light3 table, body.light3 th, body.light3 td {
     border: 1px solid #bbb;
 }
 
-body.dark1 th, body.dark1 td {
-    border: 1px solid #777777;
+body.dark1 table, body.dark1 th, body.dark1 td {
+    border: 1px solid #777;
 }
 
-body.dark2 th, body.dark2 td {
-    border: 1px solid #666666;
+body.dark2 table, body.dark2 th, body.dark2 td {
+    border: 1px solid #666;
 }
 
-body.dark3 th, body.dark3 td {
-    border: 1px solid #555555;
+body.dark3 table, body.dark3 th, body.dark3 td {
+    border: 1px solid #555;
 }
 
 body.light1 th {
@@ -350,69 +468,155 @@ body.dark3 th {
     background-color: #4f4f4f;
 }
 
-/* Кнопки */
-button {
-    padding: 5px 10px;
-    cursor: pointer;
-    border: none;
+body.light1 td {
+    background-color: #ffffff;
+}
+
+body.light2 td {
+    background-color: #f0f0f0;
+}
+
+body.light3 td {
+    background-color: #e6e6e6;
+}
+
+body.dark1 td {
+    background-color: #333333;
+}
+
+body.dark2 td {
+    background-color: #2a2a2a;
+}
+
+body.dark3 td {
+    background-color: #1f1f1f;
+}
+
+/* Поля ввода в таблице */
+body.light1 input[type="number"], body.light1 input[type="text"] {
+    background-color: #f9f9f9;
+    color: #000000;
+    border: 1px solid #ddd;
+    padding: 2px;
+    width: 50px;
+}
+
+body.light2 input[type="number"], body.light2 input[type="text"] {
+    background-color: #e9e9e9;
+    color: #000000;
+    border: 1px solid #ccc;
+    padding: 2px;
+    width: 50px;
+}
+
+body.light3 input[type="number"], body.light3 input[type="text"] {
+    background-color: #d9d9d9;
+    color: #000000;
+    border: 1px solid #bbb;
+    padding: 2px;
+    width: 50px;
+}
+
+body.dark1 input[type="number"], body.dark1 input[type="text"] {
+    background-color: #555555;
+    color: #ffffff;
+    border: 1px solid #777;
+    padding: 2px;
+    width: 50px;
+}
+
+body.dark2 input[type="number"], body.dark2 input[type="text"] {
+    background-color: #4a4a4a;
+    color: #dddddd;
+    border: 1px solid #666;
+    padding: 2px;
+    width: 50px;
+}
+
+body.dark3 input[type="number"], body.dark3 input[type="text"] {
+    background-color: #3f3f3f;
+    color: #cccccc;
+    border: 1px solid #555;
+    padding: 2px;
+    width: 50px;
+}
+
+/* Suggestions */
+.suggestions {
+    position: absolute;
     border-radius: 3px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
 }
 
-body.light1 button {
-    background-color: #007bff;
-    color: white;
+body.light1 .suggestions {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    color: #000000;
 }
 
-body.light2 button {
-    background-color: #0066cc;
-    color: white;
+body.light2 .suggestions {
+    background-color: #e9e9e9;
+    border: 1px solid #ccc;
+    color: #000000;
 }
 
-body.light3 button {
-    background-color: #005cbf;
-    color: white;
+body.light3 .suggestions {
+    background-color: #d9d9d9;
+    border: 1px solid #bbb;
+    color: #000000;
 }
 
-body.dark1 button {
-    background-color: #1e90ff;
+body.dark1 .suggestions {
+    background-color: #555555;
+    border: 1px solid #777;
     color: #ffffff;
 }
 
-body.dark2 button {
-    background-color: #1c86ee;
-    color: #ffffff;
+body.dark2 .suggestions {
+    background-color: #4a4a4a;
+    border: 1px solid #666;
+    color: #dddddd;
 }
 
-body.dark3 button {
-    background-color: #187bcd;
-    color: #ffffff;
+body.dark3 .suggestions {
+    background-color: #3f3f3f;
+    border: 1px solid #555;
+    color: #cccccc;
 }
 
-body.light1 button:hover {
-    background-color: #0056b3;
+.suggestion-item {
+    padding: 5px;
+    cursor: pointer;
 }
 
-body.light2 button:hover {
-    background-color: #004d99;
+body.light1 .suggestion-item:hover {
+    background-color: #e0e0e0;
 }
 
-body.light3 button:hover {
-    background-color: #004080;
+body.light2 .suggestion-item:hover {
+    background-color: #d0d0d0;
 }
 
-body.dark1 button:hover {
-    background-color: #4682b4;
+body.light3 .suggestion-item:hover {
+    background-color: #c0c0c0;
 }
 
-body.dark2 button:hover {
-    background-color: #3a76a8;
+body.dark1 .suggestion-item:hover {
+    background-color: #666666;
 }
 
-body.dark3 button:hover {
-    background-color: #2e6a9c;
+body.dark2 .suggestion-item:hover {
+    background-color: #5a5a5a;
 }
 
-/* Остальные элементы */
+body.dark3 .suggestion-item:hover {
+    background-color: #4f4f4f;
+}
+
+/* Остальное */
 .hidden {
     display: none;
 }

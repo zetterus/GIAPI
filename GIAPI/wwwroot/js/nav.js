@@ -3,18 +3,16 @@
     console.log('Creating navbar');
 
     const nav = document.createElement('nav');
-
-    // Nav-left
     const navLeft = document.createElement('div');
     navLeft.className = 'nav-left';
     const ulLeft = document.createElement('ul');
     const leftLinks = [
-        { text: 'Home', href: '/index.html' },
-        { text: 'Login', href: '/login.html', class: 'auth-link' },
-        { text: 'Register', href: '/register.html', class: 'auth-link' },
-        { text: 'Inventory', href: '/inventory.html', class: 'auth-link hidden', id: 'inventory-link' },
-        { text: 'Admin Panel', href: '/admin.html', class: 'auth-link hidden', id: 'admin-link' },
-        { text: 'Moderator Panel', href: '/moderator.html', class: 'auth-link hidden', id: 'moderator-link' }
+        { text: 'Home', href: '/index.html' }, // Всегда видна
+        { text: 'Login', href: '/login.html', class: 'auth-link' }, // Только неавторизованным
+        { text: 'Register', href: '/register.html', class: 'auth-link' }, // Только неавторизованным
+        { text: 'Inventory', href: '/inventory.html', class: 'auth-link hidden', id: 'inventory-link' }, // Только авторизованным
+        { text: 'Admin Panel', href: '/admin.html', class: 'auth-link hidden', id: 'admin-link' }, // Только Admin
+        { text: 'Moderator Panel', href: '/moderator.html', class: 'auth-link hidden', id: 'moderator-link' } // Только Moderator
     ];
     leftLinks.forEach(link => {
         const li = document.createElement('li');
@@ -28,14 +26,12 @@
     });
     navLeft.appendChild(ulLeft);
 
-    // Active Bag (центр навигации)
     const activeBag = document.createElement('div');
     activeBag.id = 'active-bag';
     activeBag.style.textAlign = 'center';
-    activeBag.style.flex = '1'; // Растягиваем центр
+    activeBag.style.flex = '1';
     activeBag.textContent = 'No bag active';
 
-    // Nav-right
     const navRight = document.createElement('div');
     navRight.className = 'nav-right';
 
@@ -91,16 +87,12 @@
     themeWrapper.append(themeBtn, themeList);
 
     navRight.append(authStatus, loginForm, logoutBtn, themeWrapper);
-
-    // Собираем навигацию: левая часть, центр (active-bag), правая часть
     nav.append(navLeft, activeBag, navRight);
-    nav.style.display = 'flex'; // Для равномерного распределения
-    nav.style.justifyContent = 'space-between'; // Размещаем элементы
     document.body.insertBefore(nav, document.body.firstChild);
-    console.log('Navbar added to DOM');
 
-    // Логика авторизации
     const token = localStorage.getItem('token');
+
+    // Функция управления видимостью кнопок
     function updateAuthUI(username, role) {
         const authLinks = document.querySelectorAll('.auth-link');
         const inventoryLink = document.getElementById('inventory-link');
@@ -108,27 +100,29 @@
         const moderatorLink = document.getElementById('moderator-link');
 
         if (username && role) {
+            // Авторизован
             authStatus.textContent = `Logged in as ${username}, ${role}`;
             loginForm.classList.add('hidden');
             logoutBtn.classList.remove('hidden');
-            authLinks.forEach(link => link.classList.add('hidden'));
-            inventoryLink.classList.remove('hidden');
-            if (role === 'Admin') adminLink.classList.remove('hidden');
-            if (role === 'Moderator') moderatorLink.classList.remove('hidden');
+            authLinks.forEach(link => link.classList.add('hidden')); // Скрываем все auth-link
+            inventoryLink.classList.remove('hidden'); // Показываем Inventory для всех авторизованных
+            if (role === 'Admin') adminLink.classList.remove('hidden'); // Только для Admin
+            if (role === 'Moderator') moderatorLink.classList.remove('hidden'); // Только для Moderator
         } else {
+            // Не авторизован
             authStatus.textContent = 'You are not authenticated';
             loginForm.classList.remove('hidden');
             logoutBtn.classList.add('hidden');
             authLinks.forEach(link => {
-                if (link.id === 'inventory-link' || link.id === 'admin-link' || link.id === 'moderator-link') {
-                    link.classList.add('hidden');
-                } else {
-                    link.classList.remove('hidden');
+                link.classList.add('hidden'); // Скрываем все по умолчанию
+                if (link.textContent === 'Login' || link.textContent === 'Register') {
+                    link.classList.remove('hidden'); // Показываем только Login и Register
                 }
             });
         }
     }
 
+    // Проверка токена при загрузке
     if (token) {
         fetch('/api/auth/verify', { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => response.ok ? response.json() : Promise.reject('Token invalid'))
@@ -182,15 +176,14 @@
     themeList.querySelectorAll('li').forEach(item => {
         item.addEventListener('click', () => {
             const theme = item.getAttribute('data-theme');
-            document.body.className = '';
-            document.body.classList.add(theme);
+            document.body.className = theme;
             localStorage.setItem('theme', theme);
             themeList.classList.add('hidden');
         });
     });
 
     const savedTheme = localStorage.getItem('theme') || 'light1';
-    document.body.classList.add(savedTheme);
+    document.body.className = savedTheme;
 }
 
 document.addEventListener('DOMContentLoaded', createNavBar);
