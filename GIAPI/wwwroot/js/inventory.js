@@ -1,6 +1,4 @@
 ﻿document.addEventListener('DOMContentLoaded', () => {
-    console.log('inventory.js loaded');
-
     const bagSelect = document.getElementById('bag-select');
     const activateBagBtn = document.getElementById('activate-bag-btn');
     const createBagBtn = document.getElementById('create-bag-btn');
@@ -12,18 +10,25 @@
     const bagRaritySelect = document.getElementById('bag-rarity');
     const activeBagDisplay = document.getElementById('active-bag');
     const inventoryTableTitle = document.getElementById('inventory-table-title');
+    const shareUserSearch = document.getElementById('share-user-search');
+    const shareUserSuggestions = document.getElementById('share-user-suggestions');
+    const shareAccessLevelSelect = document.getElementById('share-access-level');
+    const transferUserSearch = document.getElementById('transfer-user-search');
+    const transferUserSuggestions = document.getElementById('transfer-user-suggestions');
     const token = localStorage.getItem('token');
     const role = localStorage.getItem('role') || 'Player';
 
     const rarityOptions = {
         'Player': [
             { value: 'Common', text: 'Common' },
-            { value: 'Rare', text: 'Rare' }
+            { value: 'Rare', text: 'Rare' },
+            { value: 'Epic', text: 'Epic' }
         ],
         'Moderator': [
             { value: 'Common', text: 'Common' },
             { value: 'Rare', text: 'Rare' },
-            { value: 'Epic', text: 'Epic' }
+            { value: 'Epic', text: 'Epic' },
+            { value: 'Legendary', text: 'Legendary' }
         ],
         'Admin': [
             { value: 'Common', text: 'Common' },
@@ -67,7 +72,7 @@
                     <td>${i.quantity}</td>
                     <td>
                         <input type="number" min="1" max="${i.quantity}" value="1" id="qty-${i.itemId}">
-                        <input type="text" placeholder="Search bag..." id="search-${i.itemId}">
+                        <input type="text" placeholder="Search all bags..." id="search-${i.itemId}">
                         <div class="suggestions" id="suggestions-${i.itemId}"></div>
                         <button onclick="moveItem(${bagId}, ${i.itemId})">Move</button>
                         <button onclick="removeItem(${bagId}, ${i.itemId})">Remove</button>
@@ -86,7 +91,7 @@
                         suggestionsDiv.style.display = 'none';
                         return;
                     }
-                    const response = await fetch(`/api/inventory/search-bags?query=${encodeURIComponent(query)}`, {
+                    const response = await fetch(`/api/inventory/search-all-bags?query=${encodeURIComponent(query)}`, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                     if (!response.ok) return;
@@ -97,7 +102,7 @@
                     suggestionsDiv.style.display = 'block';
                     suggestionsDiv.querySelectorAll('.suggestion-item').forEach(item => {
                         item.addEventListener('click', () => {
-                            searchInput.value = item.textContent;
+                            searchInput.value = `[${item.textContent}]`;
                             searchInput.dataset.toBagId = item.dataset.bagId;
                             suggestionsDiv.style.display = 'none';
                         });
@@ -136,6 +141,46 @@
         }, { once: true });
     }
 
+    async function searchUsers(query, suggestionsDiv, input) {
+        if (query.length < 1) {
+            suggestionsDiv.style.display = 'none';
+            return;
+        }
+        try {
+            const response = await fetch(`/api/user/search?query=${encodeURIComponent(query)}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) {
+                console.error(`Server error: ${response.status} ${response.statusText}`);
+                const text = await response.text();
+                console.error('Response body:', text);
+                suggestionsDiv.innerHTML = '<div class="suggestion-item">Error loading users</div>';
+                suggestionsDiv.style.display = 'block';
+                return;
+            }
+            const users = await response.json();
+            if (!Array.isArray(users)) {
+                console.error('Expected array, got:', users);
+                return;
+            }
+            suggestionsDiv.innerHTML = users.map(u => `
+            <div class="suggestion-item" data-user-id="${u.id}">${u.username}</div>
+        `).join('');
+            suggestionsDiv.style.display = 'block';
+            suggestionsDiv.querySelectorAll('.suggestion-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    input.value = item.textContent;
+                    input.dataset.userId = item.dataset.userId;
+                    suggestionsDiv.style.display = 'none';
+                });
+            });
+        } catch (error) {
+            console.error('Fetch error:', error);
+            suggestionsDiv.innerHTML = '<div class="suggestion-item">Network error</div>';
+            suggestionsDiv.style.display = 'block';
+        }
+    }
+
     createBagBtn.addEventListener('click', async () => {
         const name = document.getElementById('bag-name').value;
         const rarity = bagRaritySelect.value;
@@ -163,22 +208,29 @@
     });
 
     shareBagBtn.addEventListener('click', async () => {
-        const userId = parseInt(prompt('Enter user ID to share with:'));
-        const accessLevel = prompt('Enter access level (ViewOnly, FullEdit):');
+        const userId = parseInt(shareUserSearch.dataset.userId);
+        const accessLevel = shareAccessLevelSelect.value;
         const bagId = parseInt(bagSelect.value);
         if (!bagId) return alert('Please select a bag');
+        if (!userId || isNaN(userId)) return alert('Please select a valid user');
+        if (!accessLevel) return alert('Please select an access level');
         const response = await fetch('/api/inventory/share', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ inventoryBagId: bagId, targetUserId: userId, accessLevel })
         });
-        if (response.ok) alert('Bag shared!');
+        if (response.ok) {
+            alert('Bag shared!');
+            shareUserSearch.value = '';
+            delete shareUserSearch.dataset.userId;
+        }
     });
 
     transferBagBtn.addEventListener('click', async () => {
-        const newOwnerId = parseInt(prompt('Enter new owner ID:'));
+        const newOwnerId = parseInt(transferUserSearch.dataset.userId);
         const bagId = parseInt(bagSelect.value);
         if (!bagId) return alert('Please select a bag');
+        if (!newOwnerId || isNaN(newOwnerId)) return alert('Please select a valid user');
         const response = await fetch('/api/inventory/transfer', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -186,7 +238,21 @@
         });
         if (response.ok) {
             alert('Ownership transferred!');
+            transferUserSearch.value = '';
+            delete transferUserSearch.dataset.userId;
             loadBags();
+        }
+    });
+
+    shareUserSearch.addEventListener('input', () => searchUsers(shareUserSearch.value.trim(), shareUserSuggestions, shareUserSearch));
+    transferUserSearch.addEventListener('input', () => searchUsers(transferUserSearch.value.trim(), transferUserSuggestions, transferUserSearch));
+
+    document.addEventListener('click', (e) => {
+        if (!shareUserSuggestions.contains(e.target) && e.target !== shareUserSearch) {
+            shareUserSuggestions.style.display = 'none';
+        }
+        if (!transferUserSuggestions.contains(e.target) && e.target !== transferUserSearch) {
+            transferUserSuggestions.style.display = 'none';
         }
     });
 

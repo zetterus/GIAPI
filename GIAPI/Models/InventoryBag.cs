@@ -11,7 +11,6 @@ namespace GIAPI.Models
         public Rarity Rarity { get; set; } = Rarity.Common;
         public List<Inventory> Inventories { get; set; } = new();
         public List<InventoryBagAccess> Accesses { get; set; } = new();
-
         public int MaxItems => (int)Rarity * 10;
     }
 }

@@ -90,31 +90,15 @@ body.dark3 nav {
     gap: 15px;
 }
 
-body.light1 .nav-right {
+body[class^="light"] .nav-right {
     color: #ffffff;
 }
 
-body.light2 .nav-right {
-    color: #ffffff;
-}
-
-body.light3 .nav-right {
-    color: #ffffff;
-}
-
-body.dark1 .nav-right {
+body[class^="dark"] .nav-right {
     color: #dddddd;
 }
 
-body.dark2 .nav-right {
-    color: #dddddd;
-}
-
-body.dark3 .nav-right {
-    color: #dddddd;
-}
-
-/* Все кнопки и ссылки навигации */
+/* Кнопки и ссылки */
 button, .nav-left a {
     padding: 5px 10px;
     cursor: pointer;
@@ -187,42 +171,36 @@ body.light1 .auth-form input {
     background-color: #f9f9f9;
     color: #000000;
     border: 1px solid #ddd;
-    padding: 5px;
 }
 
 body.light2 .auth-form input {
     background-color: #e9e9e9;
     color: #000000;
     border: 1px solid #ccc;
-    padding: 5px;
 }
 
 body.light3 .auth-form input {
     background-color: #d9d9d9;
     color: #000000;
     border: 1px solid #bbb;
-    padding: 5px;
 }
 
 body.dark1 .auth-form input {
     background-color: #555555;
     color: #ffffff;
     border: 1px solid #777;
-    padding: 5px;
 }
 
 body.dark2 .auth-form input {
     background-color: #4a4a4a;
     color: #dddddd;
     border: 1px solid #666;
-    padding: 5px;
 }
 
 body.dark3 .auth-form input {
     background-color: #3f3f3f;
     color: #cccccc;
     border: 1px solid #555;
-    padding: 5px;
 }
 
 /* Выпадающий список тем */
@@ -252,7 +230,7 @@ body.light1 .theme-list {
 }
 
 body.light2 .theme-list {
-    background-color: #e9e9e9;
+    background giud-color: #e9e9e9;
     color: #000000;
     border: 1px solid #ccc;
 }
@@ -353,54 +331,77 @@ body.dark3 .column {
     border: 1px solid #555;
 }
 
-/* Форма */
+/* Bag Management */
+.bag-management {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.management-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+    .management-row button {
+        width: 150px; /* Фиксированная ширина для выравнивания */
+        text-align: left;
+    }
+
+.share-fields {
+    display: flex;
+    gap: 10px;
+}
+
+/* Форма и поля ввода */
+input, select {
+    padding: 5px;
+    border: 1px solid;
+    box-sizing: border-box;
+}
+
+body.light1 input, body.light1 select {
+    background-color: #f9f9f9;
+    color: #000000;
+    border-color: #ddd;
+}
+
+body.light2 input, body.light2 select {
+    background-color: #e9e9e9;
+    color: #000000;
+    border-color: #ccc;
+}
+
+body.light3 input, body.light3 select {
+    background-color: #d9d9d9;
+    color: #000000;
+    border-color: #bbb;
+}
+
+body.dark1 input, body.dark1 select {
+    background-color: #555555;
+    color: #ffffff;
+    border-color: #777;
+}
+
+body.dark2 input, body.dark2 select {
+    background-color: #4a4a4a;
+    color: #dddddd;
+    border-color: #666;
+}
+
+body.dark3 input, body.dark3 select {
+    background-color: #3f3f3f;
+    color: #cccccc;
+    border-color: #555;
+}
+
 .vertical-form {
     display: flex;
     flex-direction: column;
     gap: 10px;
     max-width: 300px;
-}
-
-body.light1 .vertical-form input, body.light1 .vertical-form select {
-    background-color: #f9f9f9;
-    color: #000000;
-    border: 1px solid #ddd;
-    padding: 5px;
-}
-
-body.light2 .vertical-form input, body.light2 .vertical-form select {
-    background-color: #e9e9e9;
-    color: #000000;
-    border: 1px solid #ccc;
-    padding: 5px;
-}
-
-body.light3 .vertical-form input, body.light3 .vertical-form select {
-    background-color: #d9d9d9;
-    color: #000000;
-    border: 1GRApx solid #bbb;
-    padding: 5px;
-}
-
-body.dark1 .vertical-form input, body.dark1 .vertical-form select {
-    background-color: #555555;
-    color: #ffffff;
-    border: 1px solid #777;
-    padding: 5px;
-}
-
-body.dark2 .vertical-form input, body.dark2 .vertical-form select {
-    background-color: #4a4a4a;
-    color: #dddddd;
-    border: 1px solid #666;
-    padding: 5px;
-}
-
-body.dark3 .vertical-form input, body.dark3 .vertical-form select {
-    background-color: #3f3f3f;
-    color: #cccccc;
-    border: 1px solid #555;
-    padding: 5px;
 }
 
 /* Таблица */
@@ -493,52 +494,14 @@ body.dark3 td {
 }
 
 /* Поля ввода в таблице */
-body.light1 input[type="number"], body.light1 input[type="text"] {
-    background-color: #f9f9f9;
-    color: #000000;
-    border: 1px solid #ddd;
-    padding: 2px;
+input[type="number"] {
     width: 50px;
+    padding: 2px;
 }
 
-body.light2 input[type="number"], body.light2 input[type="text"] {
-    background-color: #e9e9e9;
-    color: #000000;
-    border: 1px solid #ccc;
+table td input[type="text"] {
+    width: 350px;
     padding: 2px;
-    width: 50px;
-}
-
-body.light3 input[type="number"], body.light3 input[type="text"] {
-    background-color: #d9d9d9;
-    color: #000000;
-    border: 1px solid #bbb;
-    padding: 2px;
-    width: 50px;
-}
-
-body.dark1 input[type="number"], body.dark1 input[type="text"] {
-    background-color: #555555;
-    color: #ffffff;
-    border: 1px solid #777;
-    padding: 2px;
-    width: 50px;
-}
-
-body.dark2 input[type="number"], body.dark2 input[type="text"] {
-    background-color: #4a4a4a;
-    color: #dddddd;
-    border: 1px solid #666;
-    padding: 2px;
-    width: 50px;
-}
-
-body.dark3 input[type="number"], body.dark3 input[type="text"] {
-    background-color: #3f3f3f;
-    color: #cccccc;
-    border: 1px solid #555;
-    padding: 2px;
-    width: 50px;
 }
 
 /* Suggestions */

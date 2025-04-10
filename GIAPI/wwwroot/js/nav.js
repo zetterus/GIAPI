@@ -1,18 +1,17 @@
 ﻿function createNavBar() {
     if (document.querySelector('nav')) return;
-    console.log('Creating navbar');
 
     const nav = document.createElement('nav');
     const navLeft = document.createElement('div');
     navLeft.className = 'nav-left';
     const ulLeft = document.createElement('ul');
     const leftLinks = [
-        { text: 'Home', href: '/index.html' }, // Всегда видна
-        { text: 'Login', href: '/login.html', class: 'auth-link' }, // Только неавторизованным
-        { text: 'Register', href: '/register.html', class: 'auth-link' }, // Только неавторизованным
-        { text: 'Inventory', href: '/inventory.html', class: 'auth-link hidden', id: 'inventory-link' }, // Только авторизованным
-        { text: 'Admin Panel', href: '/admin.html', class: 'auth-link hidden', id: 'admin-link' }, // Только Admin
-        { text: 'Moderator Panel', href: '/moderator.html', class: 'auth-link hidden', id: 'moderator-link' } // Только Moderator
+        { text: 'Home', href: '/index.html' },
+        { text: 'Login', href: '/login.html', class: 'auth-link' },
+        { text: 'Register', href: '/register.html', class: 'auth-link' },
+        { text: 'Inventory', href: '/inventory.html', class: 'auth-link hidden', id: 'inventory-link' },
+        { text: 'Admin Panel', href: '/admin.html', class: 'auth-link hidden', id: 'admin-link' },
+        { text: 'Moderator Panel', href: '/moderator.html', class: 'auth-link hidden', id: 'moderator-link' }
     ];
     leftLinks.forEach(link => {
         const li = document.createElement('li');
@@ -92,52 +91,60 @@
 
     const token = localStorage.getItem('token');
 
-    // Функция управления видимостью кнопок
     function updateAuthUI(username, role) {
         const authLinks = document.querySelectorAll('.auth-link');
         const inventoryLink = document.getElementById('inventory-link');
         const adminLink = document.getElementById('admin-link');
         const moderatorLink = document.getElementById('moderator-link');
 
+        authLinks.forEach(link => {
+            link.style.display = 'none';
+        });
+
         if (username && role) {
-            // Авторизован
             authStatus.textContent = `Logged in as ${username}, ${role}`;
             loginForm.classList.add('hidden');
             logoutBtn.classList.remove('hidden');
-            authLinks.forEach(link => link.classList.add('hidden')); // Скрываем все auth-link
-            inventoryLink.classList.remove('hidden'); // Показываем Inventory для всех авторизованных
-            if (role === 'Admin') adminLink.classList.remove('hidden'); // Только для Admin
-            if (role === 'Moderator') moderatorLink.classList.remove('hidden'); // Только для Moderator
+            inventoryLink.style.display = 'block';
+            if (role === 'Admin') {
+                adminLink.style.display = 'block';
+            }
+            if (role === 'Moderator') {
+                moderatorLink.style.display = 'block';
+            }
         } else {
-            // Не авторизован
             authStatus.textContent = 'You are not authenticated';
             loginForm.classList.remove('hidden');
             logoutBtn.classList.add('hidden');
             authLinks.forEach(link => {
-                link.classList.add('hidden'); // Скрываем все по умолчанию
                 if (link.textContent === 'Login' || link.textContent === 'Register') {
-                    link.classList.remove('hidden'); // Показываем только Login и Register
+                    link.style.display = 'block';
                 }
             });
         }
+        authLinks.forEach(link => {
+        });
     }
 
-    // Проверка токена при загрузке
     if (token) {
         fetch('/api/auth/verify', { headers: { 'Authorization': `Bearer ${token}` } })
-            .then(response => response.ok ? response.json() : Promise.reject('Token invalid'))
+            .then(response => {
+                return response.ok ? response.json() : Promise.reject('Token invalid');
+            })
             .then(data => {
                 localStorage.setItem('username', data.username);
                 localStorage.setItem('role', data.role);
                 updateAuthUI(data.username, data.role);
             })
-            .catch(() => {
+            .catch(err => {
+                console.error('Fetch error:', err);
                 localStorage.removeItem('token');
                 localStorage.removeItem('username');
                 localStorage.removeItem('role');
                 updateAuthUI(null, null);
             });
     } else {
+        console.log('No token, setting default UI');
         updateAuthUI(null, null);
     }
 
@@ -145,12 +152,14 @@
         e.preventDefault();
         const username = usernameInput.value;
         const password = passwordInput.value;
+        console.log('Login attempt:', username);
         const response = await fetch('/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
         });
         const result = await response.json();
+        console.log('Login result:', result);
         if (response.ok) {
             localStorage.setItem('token', result.token);
             localStorage.setItem('username', username);
@@ -163,6 +172,7 @@
     });
 
     logoutBtn.addEventListener('click', () => {
+        console.log('Logout clicked');
         localStorage.removeItem('token');
         localStorage.removeItem('username');
         localStorage.removeItem('role');
@@ -186,4 +196,6 @@
     document.body.className = savedTheme;
 }
 
-document.addEventListener('DOMContentLoaded', createNavBar);
+document.addEventListener('DOMContentLoaded', () => {
+    createNavBar();
+});

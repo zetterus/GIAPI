@@ -24,7 +24,7 @@ public class InventoryController : ControllerBase
     {
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
         var userRole = User.FindFirst(ClaimTypes.Role)?.Value ?? "Player";
-        var rarity = Enum.Parse<Rarity>(request.Rarity, ignoreCase: true); // Явно string, игнорируем регистр
+        var rarity = Enum.Parse<Rarity>(request.Rarity, ignoreCase: true);
 
         bool isAllowed = userRole switch
         {
@@ -47,18 +47,33 @@ public class InventoryController : ControllerBase
         return Ok(bag.Id);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetInventory()
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var bags = await _context.InventoryBags
+            .Where(b => b.OwnerId == userId || b.Accesses.Any(a => a.UserId == userId))
+            .Select(b => new
+            {
+                b.Id,
+                b.Name,
+                b.Rarity,
+                Items = b.Inventories.Select(i => new { i.ItemId, i.Quantity, i.Item.Name })
+            })
+            .ToListAsync();
+        return Ok(bags);
+    }
+
     // Получить доступные сумки
     [HttpGet("bags")]
     public async Task<IActionResult> GetBags()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim == null) return Unauthorized("User ID not found in token");
-        var userId = int.Parse(userIdClaim.Value); // userId как int
-
+        var userId = int.Parse(userIdClaim.Value);
         var userRoleString = User.FindFirst(ClaimTypes.Role)?.Value ?? "Player";
         var userRole = Enum.Parse<Role>(userRoleString, ignoreCase: true);
 
-        // Все роли видят только свои сумки и поделённые с ними
         IQueryable<InventoryBag> query = _context.InventoryBags
             .Where(ib => ib.OwnerId == userId || ib.Accesses.Any(a => a.UserId == userId));
 
@@ -82,7 +97,6 @@ public class InventoryController : ControllerBase
             })
             .ToListAsync();
 
-        // Обрабатываем AccessLevel в памяти
         var result = bags.Select(b => new
         {
             b.Id,
@@ -95,23 +109,6 @@ public class InventoryController : ControllerBase
         });
 
         return Ok(result);
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> GetInventory()
-    {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-        var bags = await _context.InventoryBags
-            .Where(b => b.OwnerId == userId || b.Accesses.Any(a => a.UserId == userId))
-            .Select(b => new
-            {
-                b.Id,
-                b.Name,
-                b.Rarity,
-                Items = b.Inventories.Select(i => new { i.ItemId, i.Quantity, i.Item.Name })
-            })
-            .ToListAsync();
-        return Ok(bags);
     }
 
     // Передать сумку другому пользователю
@@ -129,12 +126,6 @@ public class InventoryController : ControllerBase
         bag.Owner = newOwner;
         await _context.SaveChangesAsync();
         return Ok();
-    }
-
-    public class TransferBagRequest
-    {
-        public int InventoryBagId { get; set; }
-        public int NewOwnerId { get; set; }
     }
 
     // Добавить предмет в сумку
@@ -163,23 +154,14 @@ public class InventoryController : ControllerBase
     }
 
     // Поиск сумок по имени
-    [HttpGet("search-bags")]
-    public async Task<IActionResult> SearchBags(string query)
+    [HttpGet("search-all-bags")]
+    [Authorize]
+    public IActionResult SearchAllBags(string query)
     {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-        var bags = await _context.InventoryBags
-            .Where(b => b.Name.Contains(query) && (b.OwnerId == userId || b.Accesses.Any(a => a.UserId == userId)))
-            .Join(_context.Users,
-                bag => bag.OwnerId,
-                user => user.Id,
-                (bag, user) => new
-                {
-                    bag.Id,
-                    bag.Name,
-                    OwnerUsername = user.Username
-                })
-            .Take(10) // Лимит на 10 предложений
-            .ToListAsync();
+        var bags = _context.InventoryBags
+            .Where(b => b.Name.Contains(query))
+            .Select(b => new { b.Id, b.Name, OwnerUsername = b.OwnerId })
+            .ToList();
         return Ok(bags);
     }
 
@@ -198,11 +180,9 @@ public class InventoryController : ControllerBase
         var item = fromBag.Inventories.FirstOrDefault(i => i.ItemId == request.ItemId);
         if (item == null || item.Quantity < request.Quantity) return BadRequest("Invalid item or quantity");
 
-        // Уменьшаем количество в исходной сумке
         item.Quantity -= request.Quantity;
         if (item.Quantity == 0) _context.Inventories.Remove(item);
 
-        // Добавляем или увеличиваем количество в целевой сумке
         var toItem = toBag.Inventories.FirstOrDefault(i => i.ItemId == request.ItemId);
         if (toItem != null)
         {
@@ -256,8 +236,8 @@ public class InventoryController : ControllerBase
             .FirstOrDefaultAsync(ib => ib.Id == bagId);
 
         if (bag == null) return null;
-        if (role == "Admin") return bag; // Админ имеет полный доступ
-        if (bag.OwnerId == userId) return bag; // Владелец имеет полный доступ
+        if (role == "Admin") return bag;
+        if (bag.OwnerId == userId) return bag;
         var access = bag.Accesses.FirstOrDefault(a => a.UserId == userId);
         if (access == null) return null;
         return (!fullEdit || access.AccessLevel == AccessLevel.FullEdit) ? bag : null;
@@ -267,7 +247,7 @@ public class InventoryController : ControllerBase
 public class CreateBagRequest
 {
     public required string Name { get; set; }
-    public required string Rarity { get; set; } // Убедись, что это string
+    public required string Rarity { get; set; }
 }
 
 public class AddItemRequest
@@ -287,4 +267,10 @@ public class MoveItemRequest
 public class RemoveItemRequest
 {
     public int Quantity { get; set; }
+}
+
+public class TransferBagRequest
+{
+    public int InventoryBagId { get; set; }
+    public int NewOwnerId { get; set; }
 }

@@ -12,13 +12,28 @@
         <h1>Inventory</h1>
         <div class="columns">
             <div class="column left-column">
-                <h2>Select Bag</h2>
-                <div class="vertical-form">
-                    <label for="bag-select">Your Bags:</label>
-                    <select id="bag-select"></select>
-                    <button id="activate-bag-btn">Activate</button>
-                    <button id="share-bag-btn">Share Bag</button>
-                    <button id="transfer-bag-btn">Transfer Ownership</button>
+                <h2>Bag Management</h2>
+                <div class="bag-management">
+                    <div class="management-row">
+                        <button id="activate-bag-btn">Activate</button>
+                        <select id="bag-select"></select>
+                    </div>
+                    <div class="management-row">
+                        <button id="share-bag-btn">Share Bag</button>
+                        <div class="share-fields">
+                            <input type="text" id="share-user-search" placeholder="Search user...">
+                            <div class="suggestions" id="share-user-suggestions"></div>
+                            <select id="share-access-level">
+                                <option value="ViewOnly">View Only</option>
+                                <option value="FullEdit">Full Edit</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="management-row">
+                        <button id="transfer-bag-btn">Transfer Ownership</button>
+                        <input type="text" id="transfer-user-search" placeholder="Search user...">
+                        <div class="suggestions" id="transfer-user-suggestions"></div>
+                    </div>
                 </div>
             </div>
             <div class="column right-column">
@@ -49,6 +64,7 @@
                 <select id="item-select" class="hidden"></select>
             </div>
         </div>
+        <div id="active-bag">No bag active</div>
     </main>
 </body>
 </html>
