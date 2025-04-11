@@ -3,10 +3,11 @@ using GIAPI.Models;
 using GIAPI.Models.ItemModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize(Roles = "Admin")]
+[Authorize] // Общий доступ для авторизованных пользователей
 public class ItemController : ControllerBase
 {
     private readonly GameDbContext _context;
@@ -16,7 +17,19 @@ public class ItemController : ControllerBase
         _context = context;
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetItems([FromQuery] string? query)
+    {
+        var items = string.IsNullOrEmpty(query)
+            ? await _context.Items.ToListAsync()
+            : await _context.Items
+                .Where(i => i.Name.Contains(query))
+                .ToListAsync();
+        return Ok(items.Select(i => new { i.Id, i.Name })); // Возвращаем только Id и Name для поиска
+    }
+
     [HttpPost("create")]
+    [Authorize(Roles = "Admin")] // Оставляем ограничение для админов
     public async Task<IActionResult> CreateItem([FromBody] CreateItemRequest request)
     {
         var item = new Item

@@ -111,6 +111,38 @@ public class InventoryController : ControllerBase
         return Ok(result);
     }
 
+    // Предоставить доступ к сумке другому игроку
+    [HttpPost("share")]
+    public async Task<IActionResult> ShareBag([FromBody] ShareBagRequest request)
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+        var bag = await CheckAccess(request.InventoryBagId, userId, userRole, fullEdit: true);
+        if (bag == null) return Forbid();
+
+        var targetUser = await _context.Users.FindAsync(request.TargetUserId);
+        if (targetUser == null) return BadRequest("Target user not found");
+
+        // Проверяем, не пытается ли пользователь поделиться с самим собой
+        if (targetUser.Id == userId) return BadRequest("Cannot share with yourself");
+
+        // Проверяем, нет ли уже доступа
+        var existingAccess = bag.Accesses.FirstOrDefault(a => a.UserId == request.TargetUserId);
+        if (existingAccess != null) return BadRequest("User already has access to this bag");
+
+        // Добавляем новый доступ
+        var access = new InventoryBagAccess
+        {
+            InventoryBagId = request.InventoryBagId,
+            UserId = request.TargetUserId,
+            AccessLevel = Enum.Parse<AccessLevel>(request.AccessLevel, true)
+        };
+        bag.Accesses.Add(access);
+        await _context.SaveChangesAsync();
+
+        return Ok();
+    }
+
     // Передать сумку другому пользователю
     [HttpPost("transfer")]
     public async Task<IActionResult> TransferBag([FromBody] TransferBagRequest request)
@@ -134,20 +166,26 @@ public class InventoryController : ControllerBase
     {
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
         var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
-        var bag = await CheckAccess(request.InventoryBagId, userId, userRole, fullEdit: true);
-        if (bag == null) return Forbid();
 
-        if (bag.Inventories.Sum(i => i.Quantity) >= bag.MaxItems)
-            return BadRequest("Bag is full");
+        var bag = await CheckAccess(request.InventoryBagId, userId, userRole, fullEdit: true);
+        if (bag == null) return Forbid("Insufficient access to edit bag");
 
         var item = await _context.Items.FindAsync(request.ItemId);
         if (item == null) return BadRequest("Item not found");
 
-        var existing = bag.Inventories.FirstOrDefault(i => i.ItemId == request.ItemId);
-        if (existing != null)
-            existing.Quantity++;
+        var existingItem = bag.Inventories.FirstOrDefault(i => i.ItemId == request.ItemId);
+        if (existingItem != null)
+        {
+            existingItem.Quantity += request.Quantity; // Увеличиваем на переданное количество
+        }
         else
-            bag.Inventories.Add(new Inventory { ItemId = request.ItemId, Quantity = 1 });
+        {
+            bag.Inventories.Add(new Inventory
+            {
+                ItemId = request.ItemId,
+                Quantity = request.Quantity // Используем переданное количество
+            });
+        }
 
         await _context.SaveChangesAsync();
         return Ok();
@@ -169,14 +207,13 @@ public class InventoryController : ControllerBase
     [HttpPost("move")]
     public async Task<IActionResult> MoveItem([FromBody] MoveItemRequest request)
     {
-        var fromBag = await _context.InventoryBags
-            .Include(b => b.Inventories)
-            .FirstOrDefaultAsync(b => b.Id == request.FromBagId);
-        var toBag = await _context.InventoryBags
-            .Include(b => b.Inventories)
-            .FirstOrDefaultAsync(b => b.Id == request.ToBagId);
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
 
-        if (fromBag == null || toBag == null) return NotFound("Bag not found");
+        var fromBag = await CheckAccess(request.FromBagId, userId, userRole, fullEdit: true); // Требуем полный доступ
+        var toBag = await CheckAccess(request.ToBagId, userId, userRole, fullEdit: true); // Требуем полный доступ
+        if (fromBag == null || toBag == null) return Forbid("Insufficient access to one or both bags");
+
         var item = fromBag.Inventories.FirstOrDefault(i => i.ItemId == request.ItemId);
         if (item == null || item.Quantity < request.Quantity) return BadRequest("Invalid item or quantity");
 
@@ -201,10 +238,12 @@ public class InventoryController : ControllerBase
     [HttpDelete("remove/{bagId}/{itemId}")]
     public async Task<IActionResult> RemoveItem(int bagId, int itemId, [FromBody] RemoveItemRequest request)
     {
-        var bag = await _context.InventoryBags
-            .Include(b => b.Inventories)
-            .FirstOrDefaultAsync(b => b.Id == bagId);
-        if (bag == null) return NotFound("Bag not found");
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+        var bag = await CheckAccess(bagId, userId, userRole, fullEdit: true); // Требуем полный доступ
+        if (bag == null) return Forbid("Insufficient access to edit bag");
+
         var item = bag.Inventories.FirstOrDefault(i => i.ItemId == itemId);
         if (item == null || item.Quantity < request.Quantity) return BadRequest("Invalid item or quantity");
 
@@ -236,12 +275,22 @@ public class InventoryController : ControllerBase
             .FirstOrDefaultAsync(ib => ib.Id == bagId);
 
         if (bag == null) return null;
-        if (role == "Admin") return bag;
-        if (bag.OwnerId == userId) return bag;
+        if (role == "Admin") return bag; // Админ имеет полный доступ
+        if (bag.OwnerId == userId) return bag; // Владелец имеет полный доступ
+
         var access = bag.Accesses.FirstOrDefault(a => a.UserId == userId);
-        if (access == null) return null;
-        return (!fullEdit || access.AccessLevel == AccessLevel.FullEdit) ? bag : null;
+        if (access == null) return null; // Нет доступа
+        if (fullEdit && access.AccessLevel == AccessLevel.ViewOnly) return null; // ViewOnly не подходит для редактирования
+
+        return bag; // Доступ есть, и он достаточен
     }
+}
+
+public class ShareBagRequest
+{
+    public int InventoryBagId { get; set; }
+    public int TargetUserId { get; set; }
+    public string AccessLevel { get; set; } = null!;
 }
 
 public class CreateBagRequest
@@ -254,6 +303,7 @@ public class AddItemRequest
 {
     public int InventoryBagId { get; set; }
     public int ItemId { get; set; }
+    public int Quantity { get; set; } // Убираем nullable, так как количество обязательно
 }
 
 public class MoveItemRequest

@@ -4,7 +4,6 @@
     const createBagBtn = document.getElementById('create-bag-btn');
     const inventoryTable = document.querySelector('#inventory-table tbody');
     const addItemBtn = document.getElementById('add-item-btn');
-    const itemSelect = document.getElementById('item-select');
     const shareBagBtn = document.getElementById('share-bag-btn');
     const transferBagBtn = document.getElementById('transfer-bag-btn');
     const bagRaritySelect = document.getElementById('bag-rarity');
@@ -15,8 +14,11 @@
     const shareAccessLevelSelect = document.getElementById('share-access-level');
     const transferUserSearch = document.getElementById('transfer-user-search');
     const transferUserSuggestions = document.getElementById('transfer-user-suggestions');
-    const token = localStorage.getItem('token');
-    const role = localStorage.getItem('role') || 'Player';
+    const addItemQuantity = document.getElementById('add-item-quantity');
+    const addItemSearch = document.getElementById('add-item-search');
+    const addItemSuggestions = document.getElementById('add-item-suggestions');
+    let token = localStorage.getItem('token');
+    let role = localStorage.getItem('role') || 'Player';
 
     const rarityOptions = {
         'Player': [
@@ -39,6 +41,14 @@
         ]
     };
 
+    const rarityMap = {
+        0: 'Common',
+        1: 'Rare',
+        2: 'Epic',
+        3: 'Legendary',
+        4: 'Mythical'
+    };
+
     function loadRarityOptions() {
         const options = rarityOptions[role] || rarityOptions['Player'];
         bagRaritySelect.innerHTML = options.map(opt => `<option value="${opt.value}">${opt.text}</option>`).join('');
@@ -56,7 +66,7 @@
         }
         const bags = await response.json();
         bagSelect.innerHTML = bags.length > 0
-            ? bags.map(b => `<option value="${b.id}">${b.name} (${b.rarity})</option>`).join('')
+            ? bags.map(b => `<option value="${b.id}">${b.name} (${rarityMap[b.rarity] || 'Unknown'})</option>`).join('')
             : '<option value="">No bags available</option>';
     }
 
@@ -79,8 +89,9 @@
                     </td>
                 </tr>
             `).join('');
-            activeBagDisplay.textContent = `[Active Bag: ${bag.name}]`;
-            inventoryTableTitle.textContent = `Items in ${bag.name}`;
+            const accessLevel = bag.isOwner ? 'Owner' : (bag.accessLevel || 'ViewOnly');
+            activeBagDisplay.textContent = `[Active Bag: ${bag.name}; Access Level: ${accessLevel}]`;
+            inventoryTableTitle.textContent = `Items in ${bag.name} (${accessLevel})`;
 
             bag.items.forEach(i => {
                 const searchInput = document.getElementById(`search-${i.itemId}`);
@@ -121,63 +132,78 @@
         }
     }
 
-    async function loadItems() {
-        const response = await fetch('/api/item', { headers: { 'Authorization': `Bearer ${token}` } });
-        if (!response.ok) return;
-        const items = await response.json();
-        itemSelect.innerHTML = items.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
-        itemSelect.addEventListener('change', async (e) => {
-            const itemId = parseInt(e.target.value);
-            const bagId = parseInt(bagSelect.value);
-            const response = await fetch('/api/inventory/add', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ inventoryBagId: bagId, itemId })
-            });
-            if (response.ok) {
-                itemSelect.classList.add('hidden');
-                loadInventory(bagId);
-            }
-        }, { once: true });
-    }
-
-    async function searchUsers(query, suggestionsDiv, input) {
-        if (query.length < 1) {
-            suggestionsDiv.style.display = 'none';
-            return;
-        }
+    async function loadItems(query = '') {
         try {
-            const response = await fetch(`/api/user/search?query=${encodeURIComponent(query)}`, {
+            const response = await fetch(`/api/item${query ? `?query=${encodeURIComponent(query)}` : ''}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) {
-                console.error(`Server error: ${response.status} ${response.statusText}`);
-                const text = await response.text();
-                console.error('Response body:', text);
-                suggestionsDiv.innerHTML = '<div class="suggestion-item">Error loading users</div>';
+                console.error(`Server returned ${response.status}: ${await response.text()}`);
+                return [];
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Fetch error:', error);
+            return [];
+        }
+    }
+
+    async function searchItems(query, suggestionsDiv, input) {
+        if (query.length < 1) {
+            suggestionsDiv.style.display = 'none';
+            console.log('Query too short, hiding suggestions');
+            return;
+        }
+        try {
+            const items = await loadItems(query);
+            console.log('Items received:', items);
+            if (!Array.isArray(items) || items.length === 0) {
+                console.log('No items found or invalid response:', items);
+                suggestionsDiv.innerHTML = '<div class="suggestion-item">No items found</div>';
                 suggestionsDiv.style.display = 'block';
                 return;
             }
-            const users = await response.json();
-            if (!Array.isArray(users)) {
-                console.error('Expected array, got:', users);
-                return;
-            }
-            suggestionsDiv.innerHTML = users.map(u => `
-            <div class="suggestion-item" data-user-id="${u.id}">${u.username}</div>
-        `).join('');
+            suggestionsDiv.innerHTML = items.map(i => `
+                <div class="suggestion-item" data-item-id="${i.id}">${i.name}</div>
+            `).join('');
+            console.log('Suggestions updated, showing div');
             suggestionsDiv.style.display = 'block';
             suggestionsDiv.querySelectorAll('.suggestion-item').forEach(item => {
                 item.addEventListener('click', () => {
                     input.value = item.textContent;
-                    input.dataset.userId = item.dataset.userId;
+                    input.dataset.itemId = item.dataset.itemId;
                     suggestionsDiv.style.display = 'none';
+                    console.log('Item selected:', item.textContent);
                 });
             });
         } catch (error) {
-            console.error('Fetch error:', error);
+            console.error('Search error:', error);
             suggestionsDiv.innerHTML = '<div class="suggestion-item">Network error</div>';
             suggestionsDiv.style.display = 'block';
+        }
+    }
+
+    async function addItem() {
+        const itemId = parseInt(addItemSearch.dataset.itemId);
+        const quantity = parseInt(addItemQuantity.value);
+        const bagId = parseInt(bagSelect.value);
+        if (!bagId) return alert('Please select a bag');
+        if (!itemId || isNaN(itemId)) return alert('Please select an item');
+        if (quantity <= 0 || isNaN(quantity)) return alert('Please enter a valid quantity');
+
+        const response = await fetch('/api/inventory/add', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ inventoryBagId: bagId, itemId, quantity })
+        });
+        if (response.ok) {
+            addItemSearch.value = '';
+            delete addItemSearch.dataset.itemId;
+            loadInventory(bagId);
+        } else {
+            const errorText = await response.text();
+            alert(`Failed to add item: ${errorText}`);
         }
     }
 
@@ -202,9 +228,16 @@
         loadInventory(bagId);
     });
 
-    addItemBtn.addEventListener('click', () => {
-        itemSelect.classList.toggle('hidden');
-        if (!itemSelect.children.length) loadItems();
+    addItemBtn.addEventListener('click', addItem);
+
+    addItemSearch.addEventListener('input', () => {
+        searchItems(addItemSearch.value.trim(), addItemSuggestions, addItemSearch);
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!addItemSuggestions.contains(e.target) && e.target !== addItemSearch) {
+            addItemSuggestions.style.display = 'none';
+        }
     });
 
     shareBagBtn.addEventListener('click', async () => {
@@ -214,15 +247,25 @@
         if (!bagId) return alert('Please select a bag');
         if (!userId || isNaN(userId)) return alert('Please select a valid user');
         if (!accessLevel) return alert('Please select an access level');
-        const response = await fetch('/api/inventory/share', {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ inventoryBagId: bagId, targetUserId: userId, accessLevel })
-        });
-        if (response.ok) {
-            alert('Bag shared!');
-            shareUserSearch.value = '';
-            delete shareUserSearch.dataset.userId;
+        try {
+            const response = await fetch('/api/inventory/share', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ inventoryBagId: bagId, targetUserId: userId, accessLevel })
+            });
+            if (response.ok) {
+                alert('Bag shared!');
+                shareUserSearch.value = '';
+                delete shareUserSearch.dataset.userId;
+                loadBags();
+            } else {
+                const errorText = await response.text();
+                console.error(`Share failed: ${response.status} ${errorText}`);
+                alert(`Failed to share bag: ${errorText}`);
+            }
+        } catch (error) {
+            console.error('Network error:', error);
+            alert('Network error while sharing bag');
         }
     });
 
@@ -263,25 +306,63 @@
         const toBagId = parseInt(searchInput.dataset.toBagId);
         if (!toBagId || isNaN(toBagId)) return alert('Please select a valid bag');
         if (quantity <= 0 || isNaN(quantity)) return alert('Please enter a valid quantity');
-        const response = await fetch('/api/inventory/move', {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fromBagId: bagId, toBagId, itemId, quantity })
-        });
-        if (response.ok) loadInventory(bagId);
+        try {
+            const response = await fetch('/api/inventory/move', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fromBagId: bagId, toBagId, itemId, quantity })
+            });
+            if (response.ok) {
+                loadInventory(bagId);
+            } else if (response.status === 403) {
+                alert('You have limited access to this bag and cannot move items.');
+            } else {
+                const errorText = await response.text();
+                console.error(`Move failed: ${response.status} ${errorText}`);
+                alert(`Failed to move item: ${errorText}`);
+            }
+        } catch (error) {
+            console.error('Network error:', error);
+            alert('Network error while moving item');
+        }
     };
 
     window.removeItem = async (bagId, itemId) => {
         const qtyInput = document.getElementById(`qty-${itemId}`);
         const quantity = parseInt(qtyInput.value);
         if (quantity <= 0 || isNaN(quantity)) return alert('Please enter a valid quantity');
-        const response = await fetch(`/api/inventory/remove/${bagId}/${itemId}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ quantity })
-        });
-        if (response.ok) loadInventory(bagId);
+        try {
+            const response = await fetch(`/api/inventory/remove/${bagId}/${itemId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ quantity })
+            });
+            if (response.ok) {
+                loadInventory(bagId);
+            } else if (response.status === 403) {
+                alert('You have limited access to this bag and cannot remove items.');
+            } else {
+                const errorText = await response.text();
+                console.error(`Remove failed: ${response.status} ${errorText}`);
+                alert(`Failed to remove item: ${errorText}`);
+            }
+        } catch (error) {
+            console.error('Network error:', error);
+            alert('Network error while removing item');
+        }
     };
+
+    function checkAuthState() {
+        const newToken = localStorage.getItem('token');
+        const newRole = localStorage.getItem('role') || 'Player';
+        if (newToken !== token || newRole !== role) {
+            token = newToken;
+            role = newRole;
+            location.reload();
+        }
+    }
+
+    setInterval(checkAuthState, 500);
 
     loadRarityOptions();
     loadBags();

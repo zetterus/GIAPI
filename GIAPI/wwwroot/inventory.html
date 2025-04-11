@@ -59,12 +59,13 @@
                 </thead>
                 <tbody></tbody>
             </table>
-            <div class="vertical-form">
+            <div class="horizontal-form">
                 <button id="add-item-btn">Add Item</button>
-                <select id="item-select" class="hidden"></select>
+                <input type="number" min="1" value="1" id="add-item-quantity">
+                <input type="text" placeholder="Search items..." id="add-item-search">
+                <div class="suggestions" id="add-item-suggestions"></div>
             </div>
         </div>
-        <div id="active-bag">No bag active</div>
     </main>
 </body>
 </html>
