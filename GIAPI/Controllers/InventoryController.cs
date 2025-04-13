@@ -371,7 +371,7 @@ namespace GIAPI.Controllers
         // Админ: Содержимое сумки
         [HttpGet("admin/bag-contents/{id}")]
         [Authorize(Roles = "0")]
-        public async Task<IActionResult> AdminGetBagContents(int id)
+        public async Task<IActionResult> AdminGetBagContents(int id, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             var bag = await _context.InventoryBags
                 .Include(b => b.Inventories)
@@ -381,17 +381,27 @@ namespace GIAPI.Controllers
 
             if (bag == null) return NotFound("Bag not found");
 
-            return Ok(new
-            {
-                bag.Id,
-                bag.Name,
-                OwnerUsername = bag.Owner != null ? bag.Owner.Username : "Unknown",
-                Items = bag.Inventories.Select(i => new
+            var totalItems = bag.Inventories.Count;
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            var items = bag.Inventories
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(i => new
                 {
                     i.ItemId,
                     Name = i.Item != null ? i.Item.Name : "Unknown",
                     i.Quantity
                 })
+                .ToList();
+
+            return Ok(new
+            {
+                bag.Id,
+                bag.Name,
+                OwnerUsername = bag.Owner != null ? bag.Owner.Username : "Unknown",
+                Items = items,
+                TotalPages = totalPages
             });
         }
 

@@ -1,8 +1,7 @@
 ﻿/**************************/
-/* Существующие стили из site.css, которые остаются без изменений */
+/* Базовые стили */
 /**************************/
 
-/* Базовые стили */
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -40,7 +39,10 @@ body {
         color: #cccccc;
     }
 
+/**************************/
 /* Навигация */
+/**************************/
+
 nav {
     display: flex;
     justify-content: space-between;
@@ -102,7 +104,10 @@ body[class^="dark"] .nav-right {
     color: #dddddd;
 }
 
+/**************************/
 /* Кнопки и ссылки */
+/**************************/
+
 button, .nav-left a {
     padding: 5px 10px;
     cursor: pointer;
@@ -165,7 +170,10 @@ body.dark3 button, body.dark3 .nav-left a {
         background-color: #2e6a9c;
     }
 
+/**************************/
 /* Форма авторизации */
+/**************************/
+
 .auth-form {
     display: flex;
     gap: 10px;
@@ -207,7 +215,10 @@ body.dark3 .auth-form input {
     border: 1px solid #555;
 }
 
+/**************************/
 /* Выпадающий список тем */
+/**************************/
+
 .theme-wrapper {
     position: relative;
 }
@@ -292,7 +303,10 @@ body.dark3 .theme-list li:hover {
     background-color: #4f4f4f;
 }
 
+/**************************/
 /* Колонки */
+/**************************/
+
 .columns {
     display: flex;
     gap: 20px;
@@ -335,7 +349,10 @@ body.dark3 .column {
     border: 1px solid #555;
 }
 
+/**************************/
 /* Bag Management */
+/**************************/
+
 .bag-management {
     display: flex;
     flex-direction: column;
@@ -358,7 +375,10 @@ body.dark3 .column {
     gap: 10px;
 }
 
+/**************************/
 /* Форма и поля ввода */
+/**************************/
+
 input, select {
     padding: 5px;
     border: 1px solid;
@@ -408,7 +428,10 @@ body.dark3 input, body.dark3 select {
     max-width: 300px;
 }
 
+/**************************/
 /* Таблица */
+/**************************/
+
 .table-section {
     margin-top: 20px;
 }
@@ -508,177 +531,17 @@ table td input[type="text"] {
     padding: 2px;
 }
 
+/**************************/
 /* Suggestions */
-.suggestions {
+/**************************/
+
+.admin-suggestions {
     position: absolute;
     border-radius: 3px;
     max-height: 200px;
     overflow-y: auto;
     z-index: 1000;
     display: none;
-}
-
-body.light1 .suggestions {
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-    color: #000000;
-}
-
-body.light2 .suggestions {
-    background-color: #e9e9e9;
-    border: 1px solid #ccc;
-    color: #000000;
-}
-
-body.light3 .suggestions {
-    background-color: #d9d9d9;
-    border: 1px solid #bbb;
-    color: #000000;
-}
-
-body.dark1 .suggestions {
-    background-color: #555555;
-    border: 1px solid #777;
-    color: #ffffff;
-}
-
-body.dark2 .suggestions {
-    background-color: #4a4a4a;
-    border: 1px solid #666;
-    color: #dddddd;
-}
-
-body.dark3 .suggestions {
-    background-color: #3f3f3f;
-    border: 1px solid #555;
-    color: #cccccc;
-}
-
-.suggestion-item {
-    padding: 5px;
-    cursor: pointer;
-}
-
-body.light1 .suggestion-item:hover {
-    background-color: #e0e0e0;
-}
-
-body.light2 .suggestion-item:hover {
-    background-color: #d0d0d0;
-}
-
-body.light3 .suggestion-item:hover {
-    background-color: #c0c0c0;
-}
-
-body.dark1 .suggestion-item:hover {
-    background-color: #666666;
-}
-
-body.dark2 .suggestion-item:hover {
-    background-color: #5a5a5a;
-}
-
-body.dark3 .suggestion-item:hover {
-    background-color: #4f4f4f;
-}
-
-/* Остальное */
-.hidden {
-    display: none;
-}
-
-h1, h2 {
-    margin: 0 0 10px;
-}
-
-.horizontal-form {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    position: relative;
-}
-
-    .horizontal-form .suggestions {
-        position: absolute;
-        top: 100%;
-        left: 150px;
-        width: 200px;
-        background: white;
-        border: 1px solid #ccc;
-        max-height: 200px;
-        overflow-y: auto;
-        display: none;
-        z-index: 1000;
-    }
-
-    .horizontal-form .suggestion-item:hover {
-        background: #f0f0f0;
-        cursor: pointer;
-    }
-
-/* Админская страница */
-.admin-container {
-    display: flex;
-    gap: 20px;
-    margin: 20px;
-}
-
-.left-form, .right-form {
-    flex: 1;
-    padding: 10px;
-}
-
-body.light1 .left-form, body.light1 .right-form {
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-}
-
-body.light2 .left-form, body.light2 .right-form {
-    background-color: #e9e9e9;
-    border: 1px solid #ccc;
-}
-
-body.light3 .left-form, body.light3 .right-form {
-    background-color: #d9d9d9;
-    border: 1px solid #bbb;
-}
-
-body.dark1 .left-form, body.dark1 .right-form {
-    background-color: #555555;
-    border: 1px solid #777;
-}
-
-body.dark2 .left-form, body.dark2 .right-form {
-    background-color: #4a4a4a;
-    border: 1px solid #666;
-}
-
-body.dark3 .left-form, body.dark3 .right-form {
-    background-color: #3f3f3f;
-    border: 1px solid #555;
-}
-
-.search-container {
-    position: relative;
-    margin-bottom: 10px;
-}
-
-#bag-search {
-    padding: 5px;
-    width: 100%;
-    max-width: 300px;
-}
-
-.admin-suggestions {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 300px;
-    max-height: 200px;
-    overflow-y: auto;
-    display: none;
-    z-index: 1000;
 }
 
 body.light1 .admin-suggestions {
@@ -744,6 +607,109 @@ body.dark2 .admin-suggestion-item:hover {
 
 body.dark3 .admin-suggestion-item:hover {
     background-color: #4f4f4f;
+}
+
+/**************************/
+/* Остальное */
+/**************************/
+
+.hidden {
+    display: none;
+}
+
+h1, h2 {
+    margin: 0 0 10px;
+}
+
+.horizontal-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+}
+
+    .horizontal-form .admin-suggestions {
+        position: absolute;
+        top: 100%;
+        left: 150px;
+        width: 200px;
+        max-height: 200px;
+        overflow-y: auto;
+        display: none;
+        z-index: 1000;
+    }
+
+    .horizontal-form .admin-suggestion-item:hover {
+        background: #f0f0f0;
+        cursor: pointer;
+    }
+
+/**************************/
+/* Админская страница */
+/**************************/
+
+.admin-container {
+    display: flex;
+    gap: 20px;
+    margin: 20px;
+}
+
+.left-form, .right-form {
+    flex: 1;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+body.light1 .left-form, body.light1 .right-form {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+}
+
+body.light2 .left-form, body.light2 .right-form {
+    background-color: #e9e9e9;
+    border: 1px solid #ccc;
+}
+
+body.light3 .left-form, body.light3 .right-form {
+    background-color: #d9d9d9;
+    border: 1px solid #bbb;
+}
+
+body.dark1 .left-form, body.dark1 .right-form {
+    background-color: #555555;
+    border: 1px solid #777;
+}
+
+body.dark2 .left-form, body.dark2 .right-form {
+    background-color: #4a4a4a;
+    border: 1px solid #666;
+}
+
+body.dark3 .left-form, body.dark3 .right-form {
+    background-color: #3f3f3f;
+    border: 1px solid #555;
+}
+
+.search-container {
+    position: relative;
+    margin-bottom: 10px;
+}
+
+#bag-search {
+    padding: 5px;
+    width: 100%;
+    max-width: 300px;
+}
+
+.admin-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 300px;
+    max-height: 200px;
+    overflow-y: auto;
+    display: none;
+    z-index: 1000;
 }
 
 #bags-table {
@@ -940,7 +906,7 @@ body.dark3 #bag-contents-table td {
     }
 
 /**************************/
-/* Новые стили для всплывающей формы */
+/* Всплывающая форма */
 /**************************/
 
 .popup {
@@ -950,8 +916,7 @@ body.dark3 #bag-contents-table td {
     left: 50%;
     transform: translate(-50%, -50%);
     padding: 20px;
-    background-color: white;
-    border: 1px solid #ccc;
+    border-radius: 5px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     z-index: 1000;
 }
@@ -959,3 +924,39 @@ body.dark3 #bag-contents-table td {
     .popup.show {
         display: block;
     }
+
+body.light1 .popup {
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    color: #000000;
+}
+
+body.light2 .popup {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    color: #000000;
+}
+
+body.light3 .popup {
+    background-color: #e6e6e6;
+    border: 1px solid #bbb;
+    color: #000000;
+}
+
+body.dark1 .popup {
+    background-color: #555555;
+    border: 1px solid #777;
+    color: #ffffff;
+}
+
+body.dark2 .popup {
+    background-color: #4a4a4a;
+    border: 1px solid #666;
+    color: #dddddd;
+}
+
+body.dark3 .popup {
+    background-color: #3f3f3f;
+    border: 1px solid #555;
+    color: #cccccc;
+}
