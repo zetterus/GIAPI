@@ -40,7 +40,7 @@ namespace GIAPI.Controllers
             _context.SaveChanges();
 
             var token = GenerateJwtToken(user);
-            return Ok(new { Token = token });
+            return Ok(new { Token = token, Role = ((int)user.Role).ToString() });
         }
 
         [HttpPost("login")]
@@ -51,15 +51,15 @@ namespace GIAPI.Controllers
                 return Unauthorized(new { Message = "Invalid username or password" });
 
             var token = GenerateJwtToken(user);
-            return Ok(new { Token = token });
+            return Ok(new { Token = token, Role = ((int)user.Role).ToString() });
         }
 
         [HttpGet("verify")]
-        [Authorize] // Требует авторизацию
+        [Authorize]
         public IActionResult VerifyToken()
         {
-            var username = User.FindFirst(ClaimTypes.Name)?.Value;
-            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+            var username = User.FindFirst("name")?.Value;
+            var role = User.FindFirst("role")?.Value;
             return Ok(new { Username = username, Role = role });
         }
 
@@ -67,15 +67,12 @@ namespace GIAPI.Controllers
         {
             var claims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Role, user.Role.ToString())
+                new Claim("sub", user.Id.ToString()),
+                new Claim("name", user.Username),
+                new Claim("role", ((int)user.Role).ToString()) // Числовое значение роли
             };
 
             var jwtKey = _config["Jwt:Key"];
-            if (string.IsNullOrEmpty(jwtKey))
-                throw new InvalidOperationException("JWT Key is not configured in appsettings.json");
-
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 

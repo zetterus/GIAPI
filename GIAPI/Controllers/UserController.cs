@@ -1,8 +1,7 @@
-﻿using GIAPI.Data; // Добавь пространство имён для GameDbContext
+﻿using GIAPI.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore; // Для LINQ-запросов
-using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace GIAPI.Controllers
 {
@@ -13,7 +12,6 @@ namespace GIAPI.Controllers
     {
         private readonly GameDbContext _context;
 
-        // Добавляем зависимость от GameDbContext через конструктор
         public UserController(GameDbContext context)
         {
             _context = context;
@@ -22,20 +20,28 @@ namespace GIAPI.Controllers
         [HttpGet("role")]
         public IActionResult GetRole()
         {
-            var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "Player";
+            var role = User.FindFirst("role")?.Value ?? "2";
             return Ok(new { role });
         }
 
         [HttpGet("search")]
-        public IActionResult SearchUsers(string query)
+        public IActionResult SearchUsers([FromQuery] string query)
         {
-            if (string.IsNullOrEmpty(query)) return BadRequest("Query is required");
-            var users = _context.Users
-                .Where(u => u.Username.Contains(query))
-                .Select(u => new { u.Id, u.Username })
-                .Take(10) // Ограничение для оптимизации
-                .ToList();
-            return Ok(users);
+            if (string.IsNullOrEmpty(query))
+                return BadRequest(new { error = "Query is required" });
+            try
+            {
+                var users = _context.Users
+                    .Where(u => u.Username.Contains(query))
+                    .Select(u => new { u.Id, u.Username })
+                    .Take(10)
+                    .ToList();
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = $"Internal server error: {ex.Message}" });
+            }
         }
     }
 }

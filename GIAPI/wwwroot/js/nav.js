@@ -1,4 +1,8 @@
-﻿function createNavBar() {
+﻿document.addEventListener('DOMContentLoaded', () => {
+    createNavBar();
+});
+
+function createNavBar() {
     if (document.querySelector('nav')) return;
 
     const nav = document.createElement('nav');
@@ -89,29 +93,31 @@
     nav.append(navLeft, activeBag, navRight);
     document.body.insertBefore(nav, document.body.firstChild);
 
-    const token = localStorage.getItem('token');
+    function getRoleDisplayName(role) {
+        switch (role) {
+            case '0': return 'Admin';
+            case '1': return 'Moderator';
+            case '2': return 'Player';
+            default: return '';
+        }
+    }
 
     function updateAuthUI(username, role) {
+        console.log('Updating UI:', { username, role });
         const authLinks = document.querySelectorAll('.auth-link');
         const inventoryLink = document.getElementById('inventory-link');
         const adminLink = document.getElementById('admin-link');
         const moderatorLink = document.getElementById('moderator-link');
 
-        authLinks.forEach(link => {
-            link.style.display = 'none';
-        });
+        authLinks.forEach(link => link.style.display = 'none');
 
         if (username && role) {
-            authStatus.textContent = `Logged in as ${username}, ${role}`;
+            authStatus.textContent = `Logged in as ${username}, ${getRoleDisplayName(role)}`;
             loginForm.classList.add('hidden');
             logoutBtn.classList.remove('hidden');
             inventoryLink.style.display = 'block';
-            if (role === 'Admin') {
-                adminLink.style.display = 'block';
-            }
-            if (role === 'Moderator') {
-                moderatorLink.style.display = 'block';
-            }
+            if (role === '0') adminLink.style.display = 'block';
+            if (role === '1') moderatorLink.style.display = 'block';
         } else {
             authStatus.textContent = 'You are not authenticated';
             loginForm.classList.remove('hidden');
@@ -122,57 +128,62 @@
                 }
             });
         }
-        authLinks.forEach(link => {
-        });
     }
 
-    if (token) {
-        fetch('/api/auth/verify', { headers: { 'Authorization': `Bearer ${token}` } })
-            .then(response => {
-                return response.ok ? response.json() : Promise.reject('Token invalid');
-            })
-            .then(data => {
-                localStorage.setItem('username', data.username);
-                localStorage.setItem('role', data.role);
-                updateAuthUI(data.username, data.role);
-            })
-            .catch(err => {
-                console.error('Fetch error:', err);
-                localStorage.removeItem('token');
-                localStorage.removeItem('username');
-                localStorage.removeItem('role');
-                updateAuthUI(null, null);
+    async function verifyToken() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            console.log('No token found');
+            updateAuthUI(null, null);
+            return;
+        }
+        try {
+            const response = await fetch('/api/auth/verify', {
+                headers: { 'Authorization': `Bearer ${token}` }
             });
-    } else {
-        console.log('No token, setting default UI');
-        updateAuthUI(null, null);
+            if (!response.ok) {
+                throw new Error(`Verify failed: ${response.status}`);
+            }
+            const data = await response.json();
+            console.log('Verify response:', data);
+            localStorage.setItem('username', data.username);
+            localStorage.setItem('role', data.role);
+            updateAuthUI(data.username, data.role);
+        } catch (error) {
+            console.error('Verify error:', error);
+            updateAuthUI(localStorage.getItem('username'), localStorage.getItem('role'));
+        }
     }
 
     loginForm.addEventListener('submit', async e => {
         e.preventDefault();
-        const username = usernameInput.value;
+        const username = usernameInput.value.trim();
         const password = passwordInput.value;
-        console.log('Login attempt:', username);
-        const response = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-        });
-        const result = await response.json();
-        console.log('Login result:', result);
-        if (response.ok) {
-            localStorage.setItem('token', result.token);
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            if (!response.ok) {
+                const error = await response.text();
+                authStatus.textContent = `Login failed: ${error}`;
+                return;
+            }
+            const data = await response.json();
+            console.log('Login response:', data);
+            localStorage.setItem('token', data.token);
             localStorage.setItem('username', username);
-            localStorage.setItem('role', result.role || 'Player');
-            updateAuthUI(username, result.role || 'Player');
+            localStorage.setItem('role', data.role);
+            updateAuthUI(username, data.role);
             loginForm.reset();
-        } else {
-            authStatus.textContent = result.message || 'Invalid credentials';
+        } catch (error) {
+            console.error('Login error:', error);
+            authStatus.textContent = 'Network error during login';
         }
     });
 
     logoutBtn.addEventListener('click', () => {
-        console.log('Logout clicked');
         localStorage.removeItem('token');
         localStorage.removeItem('username');
         localStorage.removeItem('role');
@@ -194,8 +205,6 @@
 
     const savedTheme = localStorage.getItem('theme') || 'light1';
     document.body.className = savedTheme;
-}
 
-document.addEventListener('DOMContentLoaded', () => {
-    createNavBar();
-});
+    verifyToken();
+}

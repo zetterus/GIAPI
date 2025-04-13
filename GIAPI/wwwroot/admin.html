@@ -2,13 +2,53 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Game API</title>
+    <title>Game API - Admin Panel</title>
     <link rel="stylesheet" href="/css/site.css">
     <script src="/js/nav.js"></script>
+    <script src="/js/admin.js" defer></script>
 </head>
 <body>
     <br>
-    <h1>Welcome to Admin Panel</h1>
-    <p>To be done.</p>
+    <h1>Admin Panel</h1>
+    <div class="admin-container">
+        <div class="left-form">
+            <h2>Bags Management</h2>
+            <div class="search-container">
+                <input type="text" id="bag-search" placeholder="Search bags or users...">
+                <div class="admin-suggestions" id="bag-suggestions"></div>
+            </div>
+            <table id="bags-table">
+                <thead>
+                    <tr>
+                        <th>Bag Name</th>
+                        <th>Owner</th>
+                        <th>Access</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div class="pagination">
+                <button id="prev-page" disabled>Previous</button>
+                <span id="page-info">Page 1</span>
+                <button id="next-page">Next</button>
+            </div>
+            <div class="active-bag">
+                <span id="active-bag-display">No bag selected</span>
+            </div>
+        </div>
+        <div class="right-form">
+            <h2>Bag Contents</h2>
+            <table id="bag-contents-table">
+                <thead>
+                    <tr>
+                        <th>Item Name</th>
+                        <th>Quantity</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
 </body>
 </html>

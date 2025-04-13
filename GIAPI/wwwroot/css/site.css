@@ -345,7 +345,7 @@ body.dark3 .column {
 }
 
     .management-row button {
-        width: 150px; /* Фиксированная ширина для выравнивания */
+        width: 150px;
         text-align: left;
     }
 
@@ -592,23 +592,415 @@ h1, h2 {
     display: flex;
     align-items: center;
     gap: 10px;
-    position: relative; /* Добавляем контекст для absolute */
+    position: relative;
 }
 
-.horizontal-form .suggestions {
+    .horizontal-form .suggestions {
+        position: absolute;
+        top: 100%;
+        left: 150px;
+        width: 200px;
+        background: white;
+        border: 1px solid #ccc;
+        max-height: 200px;
+        overflow-y: auto;
+        display: none;
+        z-index: 1000;
+    }
+
+    .horizontal-form .suggestion-item:hover {
+        background: #f0f0f0;
+        cursor: pointer;
+    }
+
+/* Админская страница */
+.admin-container {
+    display: flex;
+    gap: 20px;
+    margin: 20px;
+}
+
+.left-form, .right-form {
+    flex: 1;
+    padding: 10px;
+}
+
+body.light1 .left-form, body.light1 .right-form {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+}
+
+body.light2 .left-form, body.light2 .right-form {
+    background-color: #e9e9e9;
+    border: 1px solid #ccc;
+}
+
+body.light3 .left-form, body.light3 .right-form {
+    background-color: #d9d9d9;
+    border: 1px solid #bbb;
+}
+
+body.dark1 .left-form, body.dark1 .right-form {
+    background-color: #555555;
+    border: 1px solid #777;
+}
+
+body.dark2 .left-form, body.dark2 .right-form {
+    background-color: #4a4a4a;
+    border: 1px solid #666;
+}
+
+body.dark3 .left-form, body.dark3 .right-form {
+    background-color: #3f3f3f;
+    border: 1px solid #555;
+}
+
+.search-container {
+    position: relative;
+    margin-bottom: 10px;
+}
+
+#bag-search {
+    padding: 5px;
+    width: 100%;
+    max-width: 300px;
+}
+
+.admin-suggestions {
     position: absolute;
     top: 100%;
-    left: 150px; /* Сдвигаем под поле ввода, подстрой под ширину кнопки и поля количества */
-    width: 200px; /* Фиксируем ширину */
-    background: white;
-    border: 1px solid #ccc;
+    left: 0;
+    width: 300px;
     max-height: 200px;
     overflow-y: auto;
     display: none;
-    z-index: 1000; /* Убедимся, что поверх других элементов */
+    z-index: 1000;
 }
 
-.horizontal-form .suggestion-item:hover {
-    background: #f0f0f0;
+body.light1 .admin-suggestions {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    color: #000000;
+}
+
+body.light2 .admin-suggestions {
+    background-color: #e9e9e9;
+    border: 1px solid #ccc;
+    color: #000000;
+}
+
+body.light3 .admin-suggestions {
+    background-color: #d9d9d9;
+    border: 1px solid #bbb;
+    color: #000000;
+}
+
+body.dark1 .admin-suggestions {
+    background-color: #555555;
+    border: 1px solid #777;
+    color: #ffffff;
+}
+
+body.dark2 .admin-suggestions {
+    background-color: #4a4a4a;
+    border: 1px solid #666;
+    color: #dddddd;
+}
+
+body.dark3 .admin-suggestions {
+    background-color: #3f3f3f;
+    border: 1px solid #555;
+    color: #cccccc;
+}
+
+.admin-suggestion-item {
+    padding: 5px;
     cursor: pointer;
+}
+
+body.light1 .admin-suggestion-item:hover {
+    background-color: #e0e0e0;
+}
+
+body.light2 .admin-suggestion-item:hover {
+    background-color: #d0d0d0;
+}
+
+body.light3 .admin-suggestion-item:hover {
+    background-color: #c0c0c0;
+}
+
+body.dark1 .admin-suggestion-item:hover {
+    background-color: #666666;
+}
+
+body.dark2 .admin-suggestion-item:hover {
+    background-color: #5a5a5a;
+}
+
+body.dark3 .admin-suggestion-item:hover {
+    background-color: #4f4f4f;
+}
+
+#bags-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+}
+
+    #bags-table th, #bags-table td {
+        padding: 8px;
+        text-align: left;
+    }
+
+body.light1 #bags-table th, body.light1 #bags-table td {
+    border: 1px solid #ddd;
+}
+
+body.light2 #bags-table th, body.light2 #bags-table td {
+    border: 1px solid #ccc;
+}
+
+body.light3 #bags-table th, body.light3 #bags-table td {
+    border: 1px solid #bbb;
+}
+
+body.dark1 #bags-table th, body.dark1 #bags-table td {
+    border: 1px solid #777;
+}
+
+body.dark2 #bags-table th, body.dark2 #bags-table td {
+    border: 1px solid #666;
+}
+
+body.dark3 #bags-table th, body.dark3 #bags-table td {
+    border: 1px solid #555;
+}
+
+body.light1 #bags-table th {
+    background-color: #f2f2f2;
+}
+
+body.light2 #bags-table th {
+    background-color: #dcdcdc;
+}
+
+body.light3 #bags-table th {
+    background-color: #c0c0c0;
+}
+
+body.dark1 #bags-table th {
+    background-color: #666666;
+}
+
+body.dark2 #bags-table th {
+    background-color: #5a5a5a;
+}
+
+body.dark3 #bags-table th {
+    background-color: #4f4f4f;
+}
+
+body.light1 #bags-table td {
+    background-color: #ffffff;
+}
+
+body.light2 #bags-table td {
+    background-color: #f0f0f0;
+}
+
+body.light3 #bags-table td {
+    background-color: #e6e6e6;
+}
+
+body.dark1 #bags-table td {
+    background-color: #333333;
+}
+
+body.dark2 #bags-table td {
+    background-color: #2a2a2a;
+}
+
+body.dark3 #bags-table td {
+    background-color: #1f1f1f;
+}
+
+.pagination {
+    margin: 10px 0;
+}
+
+    .pagination button {
+        padding: 5px 10px;
+        margin: 0 5px;
+    }
+
+.active-bag {
+    margin-top: 10px;
+}
+
+.right-form {
+    min-height: 200px;
+}
+
+#bag-contents-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    #bag-contents-table th, #bag-contents-table td {
+        padding: 8px;
+        text-align: left;
+    }
+
+body.light1 #bag-contents-table th, body.light1 #bag-contents-table td {
+    border: 1px solid #ddd;
+}
+
+body.light2 #bag-contents-table th, body.light2 #bag-contents-table td {
+    border: 1px solid #ccc;
+}
+
+body.light3 #bag-contents-table th, body.light3 #bag-contents-table td {
+    border: 1px solid #bbb;
+}
+
+body.dark1 #bag-contents-table th, body.dark1 #bag-contents-table td {
+    border: 1px solid #777;
+}
+
+body.dark2 #bag-contents-table th, body.dark2 #bag-contents-table td {
+    border: 1px solid #666;
+}
+
+body.dark3 #bag-contents-table th, body.dark3 #bag-contents-table td {
+    border: 1px solid #555;
+}
+
+body.light1 #bag-contents-table th {
+    background-color: #f2f2f2;
+}
+
+body.light2 #bag-contents-table th {
+    background-color: #dcdcdc;
+}
+
+body.light3 #bag-contents-table th {
+    background-color: #c0c0c0;
+}
+
+body.dark1 #bag-contents-table th {
+    background-color: #666666;
+}
+
+body.dark2 #bag-contents-table th {
+    background-color: #5a5a5a;
+}
+
+body.dark3 #bag-contents-table th {
+    background-color: #4f4f4f;
+}
+
+body.light1 #bag-contents-table td {
+    background-color: #ffffff;
+}
+
+body.light2 #bag-contents-table td {
+    background-color: #f0f0f0;
+}
+
+body.light3 #bag-contents-table td {
+    background-color: #e6e6e6;
+}
+
+body.dark1 #bag-contents-table td {
+    background-color: #333333;
+}
+
+body.dark2 #bag-contents-table td {
+    background-color: #2a2a2a;
+}
+
+body.dark3 #bag-contents-table td {
+    background-color: #1f1f1f;
+}
+
+/* Новые стили для модального окна */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    width: 500px;
+    max-width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+}
+
+.modal-content form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.modal-content label {
+    font-weight: bold;
+}
+
+.modal-content input, .modal-content select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+}
+
+.access-item {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.access-item select {
+    width: auto;
+}
+
+.modal-content button {
+    padding: 8px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.modal-content button[type="submit"] {
+    background: #4CAF50;
+    color: white;
+}
+
+.modal-content button#close-modal {
+    background: #ccc;
+}
+
+.modal-content button#add-access-btn {
+    background: #2196F3;
+    color: white;
+}
+
+.modal-content button:hover {
+    opacity: 0.9;
 }

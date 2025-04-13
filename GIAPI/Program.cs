@@ -29,9 +29,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            RoleClaimType = "role",
+            NameClaimType = "name"
         };
+        options.MapInboundClaims = false;
     });
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -41,11 +46,23 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Game API v1"));
 }
 
-app.UseHttpsRedirection(); // Оставляем, но с правильной настройкой
-app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseStaticFiles();
 app.MapControllers();
-app.MapFallbackToFile("index.html");
+
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/api"))
+    {
+        await next();
+    }
+    else
+    {
+        context.Response.StatusCode = 200;
+        context.Response.ContentType = "text/html";
+        await context.Response.SendFileAsync("wwwroot/index.html");
+    }
+});
 
 app.Run();
