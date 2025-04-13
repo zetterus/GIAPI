@@ -50,5 +50,34 @@
             </table>
         </div>
     </div>
+
+    <!-- Всплывающая форма -->
+    <div id="editBagForm" class="popup">
+        <form id="edit-bag-form">
+            <label for="bag-name">Bag Name:</label>
+            <input type="text" id="bag-name" required><br><br>
+
+            <label for="bag-rarity">Rarity:</label>
+            <select id="bag-rarity" required>
+                <option value="Common">Common</option>
+                <option value="Rare">Rare</option>
+                <option value="Epic">Epic</option>
+                <option value="Legendary">Legendary</option>
+            </select><br><br>
+
+            <label for="owner-search">Owner:</label>
+            <input type="text" id="owner-search" placeholder="Search for owner...">
+            <div id="owner-suggestions" class="admin-suggestions"></div><br>
+
+            <label>Accesses:</label>
+            <div id="access-list"></div>
+            <input type="text" id="access-search" placeholder="Add user to access...">
+            <div id="access-suggestions" class="admin-suggestions"></div><br><br>
+
+            <button type="button" id="add-access-btn">Add Access</button><br><br>
+            <button type="submit">Save</button>
+            <button type="button" id="close-popup">Cancel</button>
+        </form>
+    </div>
 </body>
 </html>

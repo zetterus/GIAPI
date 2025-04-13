@@ -91,7 +91,7 @@
                     <td>
                         <button onclick="deleteBag(${b.id})">Delete</button>
                         <button onclick="transferBag(${b.id})">Transfer</button>
-                        <button onclick="openEditBagForm(${b.id})">Edit Bag</button>
+                        <button onclick="openEditBagForm(${b.id})">Edit Access</button>
                         <button onclick="selectBag(${b.id}, '[${b.name}] (${b.ownerUsername})')">Select</button>
                     </td>
                 </tr>
@@ -249,49 +249,22 @@
                 return;
             }
 
-            // Создаём модальное окно
-            const modal = document.createElement('div');
-            modal.className = 'modal';
-            modal.innerHTML = `
-                <div class="modal-content">
-                    <h2>Edit Bag</h2>
-                    <form id="edit-bag-form">
-                        <label>Bag Name:</label>
-                        <input type="text" id="bag-name" value="${bag.name}" required>
-                        
-                        <label>Rarity:</label>
-                        <select id="bag-rarity" required>
-                            <option value="Common" ${bag.rarity === 'Common' ? 'selected' : ''}>Common</option>
-                            <option value="Rare" ${bag.rarity === 'Rare' ? 'selected' : ''}>Rare</option>
-                            <option value="Epic" ${bag.rarity === 'Epic' ? 'selected' : ''}>Epic</option>
-                            <option value="Legendary" ${bag.rarity === 'Legendary' ? 'selected' : ''}>Legendary</option>
-                        </select>
-                        
-                        <label>Owner:</label>
-                        <input type="text" id="owner-search" placeholder="Search for owner..." value="${bag.ownerUsername}">
-                        <div id="owner-suggestions" class="admin-suggestions"></div>
-                        
-                        <label>Accesses:</label>
-                        <div id="access-list"></div>
-                        <input type="text" id="access-search" placeholder="Add user to access...">
-                        <div id="access-suggestions" class="admin-suggestions"></div>
-                        
-                        <button type="button" id="add-access-btn">Add Access</button>
-                        <button type="submit">Save</button>
-                        <button type="button" id="close-modal">Cancel</button>
-                    </form>
-                </div>
-            `;
-            document.body.appendChild(modal);
+            const form = document.querySelector('#edit-bag-form');
+            const popup = document.querySelector('#editBagForm');
+            const bagName = form.querySelector('#bag-name');
+            const bagRarity = form.querySelector('#bag-rarity');
+            const ownerSearch = form.querySelector('#owner-search');
+            const ownerSuggestions = form.querySelector('#owner-suggestions');
+            const accessSearch = form.querySelector('#access-search');
+            const accessSuggestions = form.querySelector('#access-suggestions');
+            const accessList = form.querySelector('#access-list');
+            const addAccessBtn = form.querySelector('#add-access-btn');
+            const closePopup = form.querySelector('#close-popup');
 
-            const form = modal.querySelector('#edit-bag-form');
-            const ownerSearch = modal.querySelector('#owner-search');
-            const ownerSuggestions = modal.querySelector('#owner-suggestions');
-            const accessSearch = modal.querySelector('#access-search');
-            const accessSuggestions = modal.querySelector('#access-suggestions');
-            const accessList = modal.querySelector('#access-list');
-            const addAccessBtn = modal.querySelector('#add-access-btn');
-            const closeModal = modal.querySelector('#close-modal');
+            // Заполняем форму
+            bagName.value = bag.name;
+            bagRarity.value = bag.rarity || 'Common';
+            ownerSearch.value = bag.ownerUsername;
 
             let selectedOwner = { id: null, username: bag.ownerUsername };
             let accesses = bag.accesses.map(a => ({
@@ -364,12 +337,12 @@
             });
 
             // Отправка формы
-            form.addEventListener('submit', async (e) => {
+            form.onsubmit = async (e) => {
                 e.preventDefault();
                 try {
                     // Обновление названия и редкости
-                    const name = modal.querySelector('#bag-name').value;
-                    const rarity = modal.querySelector('#bag-rarity').value;
+                    const name = bagName.value;
+                    const rarity = bagRarity.value;
                     const updateResponse = await fetch('/api/inventory/admin/update-bag', {
                         method: 'POST',
                         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -425,18 +398,20 @@
 
                     alert('Bag updated successfully');
                     loadBags(currentPage);
-                    modal.remove();
+                    popup.classList.remove('show');
                 } catch (error) {
                     console.error('Update bag error:', error);
                     alert('Network error while updating bag');
                 }
-            });
+            };
 
             // Закрытие формы
-            closeModal.addEventListener('click', () => modal.remove());
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) modal.remove();
+            closePopup.addEventListener('click', () => {
+                popup.classList.remove('show');
             });
+
+            // Показ формы
+            popup.classList.add('show');
         } catch (error) {
             console.error('Load bag error:', error);
             alert('Network error while loading bag');
