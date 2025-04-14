@@ -2,52 +2,77 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Game API - Admin Panel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
     <link rel="stylesheet" href="/css/site.css">
-    <script src="/js/nav.js"></script>
-    <script src="/js/admin.js" defer></script>
 </head>
-<body>
-    <br>
-    <h1>Admin Panel</h1>
+<body class="light1">
+    <nav>
+        <div class="nav-left">
+            <ul>
+                <li><a href="/index.html">Home</a></li>
+                <li><a href="/inventory.html">Inventory</a></li>
+                <li><a href="/admin.html">Admin</a></li>
+            </ul>
+        </div>
+        <div class="nav-right">
+            <span id="username-display"></span>
+            <div class="theme-wrapper">
+                <button id="theme-toggle">Toggle Theme</button>
+                <ul id="theme-list" class="theme-list hidden">
+                    <li data-theme="light1">Light 1</li>
+                    <li data-theme="light2">Light 2</li>
+                    <li data-theme="light3">Light 3</li>
+                    <li data-theme="dark1">Dark 1</li>
+                    <li data-theme="dark2">Dark 2</li>
+                    <li data-theme="dark3">Dark 3</li>
+                </ul>
+            </div>
+            <button id="logout-btn">Logout</button>
+        </div>
+    </nav>
+
     <div class="admin-container">
         <div class="left-form">
             <h2>Bags Management</h2>
             <div class="search-container">
-                <input type="text" id="bag-search" class="input input--search" placeholder="Search bags or users...">
-                <div class="admin-suggestions" id="bag-suggestions"></div>
+                <input type="text" id="bag-search" class="input" placeholder="Search bags...">
+                <div id="bag-suggestions" class="admin-suggestions"></div>
             </div>
-            <table class="table" id="bags-table">
-                <thead>
-                    <tr>
-                        <th>Bag Name</th>
-                        <th>Owner</th>
-                        <th>Access</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+            <div class="table-section">
+                <table id="bags-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Owner</th>
+                            <th>Access</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
             <div class="pagination">
-                <button class="button" id="prev-page" disabled>Previous</button>
+                <button class="button" id="prev-page">Previous</button>
                 <span id="page-info">Page 1</span>
                 <button class="button" id="next-page">Next</button>
             </div>
-            <div class="active-bag">
-                <span id="active-bag-display">No bag selected</span>
-            </div>
         </div>
+
         <div class="right-form">
             <h2>Bag Contents</h2>
-            <table class="table" id="bag-contents-table">
-                <thead>
-                    <tr>
-                        <th>Item Name</th>
-                        <th>Quantity</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+            <div id="active-bag-display">No bag selected</div>
+            <div class="table-section">
+                <table id="bag-contents-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
             <div class="pagination">
                 <button class="button" id="contents-prev-page">Previous</button>
                 <span id="contents-page-info">Page 1</span>
@@ -56,30 +81,100 @@
         </div>
     </div>
 
-    <!-- Всплывающая форма -->
+    <div class="admin-container">
+        <div class="left-form">
+            <h2>Create Item</h2>
+            <form id="create-item-form">
+                <div>
+                    <label for="item-name">Name:</label>
+                    <input type="text" id="item-name" required>
+                </div>
+                <div>
+                    <label for="item-type">Type:</label>
+                    <select id="item-type" required>
+                        <option value="Weapon">Weapon</option>
+                        <option value="Armor">Armor</option>
+                        <option value="Potion">Potion</option>
+                        <option value="Jewelry">Jewelry</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="item-level">Level:</label>
+                    <input type="number" id="item-level" min="1" value="1" required>
+                </div>
+                <div>
+                    <label for="item-rarity">Rarity:</label>
+                    <select id="item-rarity" required>
+                        <option value="Common">Common</option>
+                        <option value="Rare">Rare</option>
+                        <option value="Epic">Epic</option>
+                        <option value="Legendary">Legendary</option>
+                        <option value="Mythical">Mythical</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="item-attack">Attack:</label>
+                    <input type="number" id="item-attack" min="0" value="0" required>
+                </div>
+                <div>
+                    <label for="item-defense">Defense:</label>
+                    <input type="number" id="item-defense" min="0" value="0" required>
+                </div>
+                <div>
+                    <label for="item-health">Health:</label>
+                    <input type="number" id="item-health" min="0" value="0" required>
+                </div>
+                <div>
+                    <label>Properties:</label>
+                    <div>
+                        <input type="text" id="property-key" placeholder="Key">
+                        <input type="text" id="property-value" placeholder="Value">
+                        <button type="button" id="add-property-btn">Add Property</button>
+                    </div>
+                    <div id="properties-list"></div>
+                </div>
+                <button type="submit">Create Item</button>
+            </form>
+        </div>
+
+        <div class="right-form">
+            <h2>Add Item to Bag</h2>
+            <form id="add-item-form" class="vertical-form">
+                <div class="horizontal-form">
+                    <input type="text" id="add-item-search" class="input" placeholder="Search item...">
+                    <div id="add-item-suggestions" class="admin-suggestions"></div>
+                </div>
+                <input type="number" id="add-item-quantity" class="input" placeholder="Quantity" min="1" required>
+                <button type="submit" class="button" disabled id="add-item-submit">Add to Bag</button>
+            </form>
+        </div>
+    </div>
+
     <div id="editBagForm" class="popup">
-        <form id="edit-bag-form">
-            <label for="bag-name">Bag Name:</label>
-            <input type="text" id="bag-name" class="input" required><br><br>
-            <label for="bag-rarity">Rarity:</label>
-            <select id="bag-rarity" class="input" required>
+        <form id="edit-bag-form" class="vertical-form">
+            <input type="text" id="bag-name" class="input" placeholder="Bag Name" required>
+            <select id="bag-rarity" class="input">
                 <option value="Common">Common</option>
                 <option value="Rare">Rare</option>
                 <option value="Epic">Epic</option>
                 <option value="Legendary">Legendary</option>
                 <option value="Mythical">Mythical</option>
-            </select><br><br>
-            <label for="owner-search">Owner:</label>
-            <input type="text" id="owner-search" class="input" placeholder="Search for owner...">
-            <div id="owner-suggestions" class="admin-suggestions"></div><br>
-            <label>Accesses:</label>
+            </select>
+            <div class="horizontal-form">
+                <input type="text" id="owner-search" class="input" placeholder="Search owner...">
+                <div id="owner-suggestions" class="admin-suggestions"></div>
+            </div>
+            <div class="horizontal-form">
+                <input type="text" id="access-search" class="input" placeholder="Search user for access...">
+                <button type="button" id="add-access-btn" class="button">Add</button>
+                <div id="access-suggestions" class="admin-suggestions"></div>
+            </div>
             <div id="access-list"></div>
-            <input type="text" id="access-search" class="input" placeholder="Add user to access...">
-            <div id="access-suggestions" class="admin-suggestions"></div><br><br>
-            <button type="button" id="add-access-btn" class="button">Add Access</button><br><br>
             <button type="submit" class="button">Save</button>
-            <button type="button" id="close-popup" class="button">Cancel</button>
+            <button type="button" id="close-popup" class="button">Close</button>
         </form>
     </div>
+
+    <script src="/js/admin.js"></script>
 </body>
 </html>

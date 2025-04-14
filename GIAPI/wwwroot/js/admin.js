@@ -1,4 +1,16 @@
 ﻿document.addEventListener('DOMContentLoaded', () => {
+    // Проверка смены дня и очистка localStorage
+    const lastLoginDate = localStorage.getItem('lastLoginDate');
+    const today = new Date().toISOString().split('T')[0];
+
+    if (lastLoginDate && lastLoginDate !== today) {
+        localStorage.clear();
+        window.location.href = '/auth.html';
+        return;
+    }
+
+    localStorage.setItem('lastLoginDate', today);
+
     const bagSearch = document.getElementById('bag-search');
     const bagSuggestions = document.getElementById('bag-suggestions');
     const bagsTableBody = document.querySelector('#bags-table tbody');
@@ -9,16 +21,55 @@
     const contentsPrevPageBtn = document.getElementById('contents-prev-page');
     const contentsNextPageBtn = document.getElementById('contents-next-page');
     const contentsPageInfo = document.getElementById('contents-page-info');
+    const createItemForm = document.getElementById('create-item-form');
+    const addItemForm = document.getElementById('add-item-form');
+    const addItemSearch = document.getElementById('add-item-search');
+    const addItemSuggestions = document.getElementById('add-item-suggestions');
+    const addItemSubmit = document.getElementById('add-item-submit');
+    const usernameDisplay = document.getElementById('username-display');
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeList = document.getElementById('theme-list');
+    const logoutBtn = document.getElementById('logout-btn');
     const token = localStorage.getItem('token');
     let currentPage = 1;
     let contentsCurrentPage = 1;
     const pageSize = 10;
+    let selectedItemId = null;
 
     if (!token) {
         alert('Please log in as admin');
         window.location.href = '/auth.html';
         return;
     }
+
+    // Отображение имени пользователя
+    usernameDisplay.textContent = localStorage.getItem('username') || 'Logged in as Admin';
+
+    // Инициализация темы
+    const themes = ['light1', 'light2', 'light3', 'dark1', 'dark2', 'dark3'];
+    let currentTheme = localStorage.getItem('theme') || 'light1';
+    document.body.className = currentTheme;
+
+    themeToggle.addEventListener('click', () => {
+        themeList.classList.toggle('hidden');
+    });
+
+    themeList.addEventListener('click', (e) => {
+        const theme = e.target.dataset.theme;
+        if (theme) {
+            currentTheme = theme;
+            document.body.className = theme;
+            localStorage.setItem('theme', theme);
+            themeList.classList.add('hidden');
+        }
+    });
+
+    // Логаут
+    logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('username');
+        window.location.href = '/auth.html';
+    });
 
     // Преобразование accessLevel
     function getAccessLevelDisplay(accessLevel) {
@@ -104,15 +155,19 @@
 
     async function loadBagContents(bagId, page = 1) {
         try {
+            console.log(`Loading contents for bagId: ${bagId}, page: ${page}`);
             const response = await fetch(`/api/inventory/admin/bag-contents/${bagId}?page=${page}&pageSize=${pageSize}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) {
                 console.error(`Server returned ${response.status}: ${await response.text()}`);
                 document.querySelector('#bag-contents-table tbody').innerHTML = '<tr><td colspan="2">Error loading contents</td></tr>';
+                contentsPrevPageBtn.style.display = 'none';
+                contentsNextPageBtn.style.display = 'none';
                 return;
             }
             const data = await response.json();
+            console.log('API response:', data);
             const items = data.items || [];
             const totalPages = data.totalPages || 1;
             document.querySelector('#bag-contents-table tbody').innerHTML = items.map(i => `
@@ -137,6 +192,7 @@
         activeBagDisplay.textContent = `Selected: ${displayText}`;
         activeBagDisplay.dataset.bagId = bagId;
         await loadBagContents(bagId, 1);
+        addItemSubmit.disabled = !(selectedItemId && bagId);
     }
 
     async function deleteBag(bagId) {
@@ -154,6 +210,7 @@
                     document.querySelector('#bag-contents-table tbody').innerHTML = '';
                     contentsPrevPageBtn.style.display = 'none';
                     contentsNextPageBtn.style.display = 'none';
+                    addItemSubmit.disabled = true;
                 }
             } else {
                 const errorText = await response.text();
@@ -230,7 +287,6 @@
             const addAccessBtn = form.querySelector('#add-access-btn');
             const closePopup = form.querySelector('#close-popup');
 
-            // Заполняем форму
             bagName.value = bag.name;
             bagRarity.value = bag.rarity || 'Common';
             ownerSearch.value = bag.ownerUsername;
@@ -242,7 +298,6 @@
                 accessLevel: getAccessLevelDisplay(a.accessLevel)
             }));
 
-            // Обновление списка доступов
             function updateAccessList() {
                 accessList.innerHTML = accesses.map((a, index) => `
                     <div class="access-item">
@@ -258,7 +313,6 @@
 
             updateAccessList();
 
-            // Поиск пользователей
             async function searchUsers(query, suggestionsContainer, callback) {
                 if (query.length < 1) {
                     suggestionsContainer.style.display = 'none';
@@ -297,7 +351,6 @@
                 }
             }
 
-            // Поиск владельца
             ownerSearch.addEventListener('input', () => {
                 searchUsers(ownerSearch.value.trim(), ownerSuggestions, (userId, username) => {
                     selectedOwner = { id: userId, username };
@@ -306,7 +359,6 @@
                 });
             });
 
-            // Поиск пользователей для доступа
             accessSearch.addEventListener('input', () => {
                 searchUsers(accessSearch.value.trim(), accessSuggestions, (userId, username) => {
                     if (!accesses.some(a => a.username === username) && username !== selectedOwner.username) {
@@ -318,7 +370,6 @@
                 });
             });
 
-            // Добавление доступа
             addAccessBtn.addEventListener('click', () => {
                 const username = accessSearch.value.trim();
                 if (username && !accesses.some(a => a.username === username) && username !== selectedOwner.username) {
@@ -331,7 +382,6 @@
                 }
             });
 
-            // Удаление доступа
             accessList.addEventListener('click', (e) => {
                 if (e.target.classList.contains('remove-access-btn')) {
                     const index = e.target.dataset.index;
@@ -340,7 +390,6 @@
                 }
             });
 
-            // Изменение уровня доступа
             accessList.addEventListener('change', (e) => {
                 if (e.target.tagName === 'SELECT') {
                     const index = e.target.dataset.index;
@@ -348,11 +397,9 @@
                 }
             });
 
-            // Отправка формы
             form.onsubmit = async (e) => {
                 e.preventDefault();
                 try {
-                    // Обновление названия и редкости
                     const name = bagName.value;
                     const rarity = bagRarity.value;
                     const updateResponse = await fetch('/api/inventory/admin/update-bag', {
@@ -366,7 +413,6 @@
                         return;
                     }
 
-                    // Обновление владельца
                     if (selectedOwner.id && selectedOwner.username !== bag.ownerUsername) {
                         const transferResponse = await fetch('/api/inventory/admin/transfer-bag', {
                             method: 'POST',
@@ -380,7 +426,6 @@
                         }
                     }
 
-                    // Обновление доступов
                     for (const access of accesses) {
                         if (!access.userId) {
                             const userResponse = await fetch(`/api/User/search?query=${encodeURIComponent(access.username)}`, {
@@ -417,7 +462,6 @@
                 }
             };
 
-            // Закрытие формы
             closePopup.addEventListener('click', () => {
                 popup.classList.remove('show');
             });
@@ -428,6 +472,169 @@
             alert('Network error while loading bag');
         }
     }
+
+    // Логика создания вещи
+    const properties = [];
+    const addPropertyBtn = document.getElementById('add-property-btn');
+    const propertyKeyInput = document.getElementById('property-key');
+    const propertyValueInput = document.getElementById('property-value');
+    const propertiesList = document.getElementById('properties-list');
+
+    function updatePropertiesList() {
+        propertiesList.innerHTML = properties.map((p, index) => `
+            <div class="access-item">
+                <span>${p.key}: ${p.value}</span>
+                <button type="button" class="button remove-property-btn" data-index="${index}">Remove</button>
+            </div>
+        `).join('');
+    }
+
+    addPropertyBtn.addEventListener('click', () => {
+        const key = propertyKeyInput.value.trim();
+        const value = propertyValueInput.value.trim();
+        if (key && value) {
+            properties.push({ key, value });
+            updatePropertiesList();
+            propertyKeyInput.value = '';
+            propertyValueInput.value = '';
+        }
+    });
+
+    propertiesList.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-property-btn')) {
+            const index = e.target.dataset.index;
+            properties.splice(index, 1);
+            updatePropertiesList();
+        }
+    });
+
+    createItemForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('item-name').value.trim();
+        const type = document.getElementById('item-type').value;
+        const level = parseInt(document.getElementById('item-level').value) || 1;
+        const rarity = document.getElementById('item-rarity').value;
+        const attack = parseInt(document.getElementById('item-attack').value) || 0;
+        const defense = parseInt(document.getElementById('item-defense').value) || 0;
+        const health = parseInt(document.getElementById('item-health').value) || 0;
+
+        if (!name) {
+            alert('Name is required');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/Item/create', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name,
+                    type,
+                    level,
+                    rarity,
+                    attack,
+                    defense,
+                    health,
+                    properties
+                })
+            });
+            if (response.ok) {
+                alert('Item created successfully');
+                createItemForm.reset();
+                properties.length = 0;
+                updatePropertiesList();
+            } else {
+                const errorData = await response.json();
+                alert(`Failed to create item: ${errorData.title || 'Unknown error'} - ${JSON.stringify(errorData.errors || {})}`);
+            }
+        } catch (error) {
+            console.error('Create item error:', error);
+            alert('Network error while creating item');
+        }
+    });
+
+    // Логика добавления вещи
+    async function searchItems(query) {
+        if (query.length < 1) {
+            addItemSuggestions.style.display = 'none';
+            return;
+        }
+        try {
+            const response = await fetch(`/api/items/admin/search?query=${encodeURIComponent(query)}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) {
+                console.error(`Server returned ${response.status}: ${await response.text()}`);
+                addItemSuggestions.innerHTML = '<div class="admin-suggestion-item">Error loading items</div>';
+                addItemSuggestions.style.display = 'block';
+                return;
+            }
+            const items = await response.json();
+            if (!Array.isArray(items) || items.length === 0) {
+                addItemSuggestions.innerHTML = '<div class="admin-suggestion-item">No items found</div>';
+                addItemSuggestions.style.display = 'block';
+                return;
+            }
+            addItemSuggestions.innerHTML = items.map(i => `
+                <div class="admin-suggestion-item" data-item-id="${i.id}">${i.name}</div>
+            `).join('');
+            addItemSuggestions.style.display = 'block';
+        } catch (error) {
+            console.error('Search items error:', error);
+            addItemSuggestions.innerHTML = '<div class="admin-suggestion-item">Network error</div>';
+            addItemSuggestions.style.display = 'block';
+        }
+    }
+
+    addItemSearch.addEventListener('input', () => {
+        searchItems(addItemSearch.value.trim());
+    });
+
+    addItemSuggestions.addEventListener('click', (e) => {
+        const item = e.target.closest('.admin-suggestion-item');
+        if (item) {
+            selectedItemId = parseInt(item.dataset.itemId);
+            addItemSearch.value = item.textContent;
+            addItemSuggestions.style.display = 'none';
+            addItemSubmit.disabled = !(selectedItemId && activeBagDisplay.dataset.bagId);
+        }
+    });
+
+    addItemForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const bagId = parseInt(activeBagDisplay.dataset.bagId);
+        const quantity = parseInt(document.getElementById('add-item-quantity').value);
+
+        if (!bagId || !selectedItemId) {
+            alert('Please select a bag and an item');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/inventory/admin/add-item', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    inventoryBagId: bagId,
+                    itemId: selectedItemId,
+                    quantity
+                })
+            });
+            if (response.ok) {
+                alert('Item added successfully');
+                addItemForm.reset();
+                selectedItemId = null;
+                addItemSubmit.disabled = true;
+                loadBagContents(bagId, contentsCurrentPage);
+            } else {
+                const errorText = await response.text();
+                alert(`Failed to add item: ${errorText}`);
+            }
+        } catch (error) {
+            console.error('Add item error:', error);
+            alert('Network error while adding item');
+        }
+    });
 
     // Делегирование событий для кнопок в таблице
     bagsTableBody.addEventListener('click', (e) => {
@@ -473,14 +680,16 @@
 
     // Пагинация содержимого
     contentsPrevPageBtn.addEventListener('click', () => {
-        if (contentsCurrentPage > 1 && activeBagDisplay.dataset.bagId) {
-            loadBagContents(activeBagDisplay.dataset.bagId, contentsCurrentPage - 1);
+        console.log(`Previous clicked, bagId: ${activeBagDisplay.dataset.bagId}, page: ${contentsCurrentPage - 1}`);
+        if (activeBagDisplay.dataset.bagId && contentsCurrentPage > 1) {
+            loadBagContents(parseInt(activeBagDisplay.dataset.bagId), contentsCurrentPage - 1);
         }
     });
 
     contentsNextPageBtn.addEventListener('click', () => {
+        console.log(`Next clicked, bagId: ${activeBagDisplay.dataset.bagId}, page: ${contentsCurrentPage + 1}`);
         if (activeBagDisplay.dataset.bagId) {
-            loadBagContents(activeBagDisplay.dataset.bagId, contentsCurrentPage + 1);
+            loadBagContents(parseInt(activeBagDisplay.dataset.bagId), contentsCurrentPage + 1);
         }
     });
 
@@ -488,6 +697,9 @@
     document.addEventListener('click', (e) => {
         if (!bagSuggestions.contains(e.target) && e.target !== bagSearch) {
             bagSuggestions.style.display = 'none';
+        }
+        if (!addItemSuggestions.contains(e.target) && e.target !== addItemSearch) {
+            addItemSuggestions.style.display = 'none';
         }
     });
 
