@@ -201,6 +201,36 @@ namespace GIAPI.Controllers
             return Ok();
         }
 
+        // Админ: Добавить предмет
+        [HttpPost("admin/add-item")]
+        [Authorize(Roles = "0")]
+        public async Task<IActionResult> AdminAddItem([FromBody] AddItemRequest request)
+        {
+            var bag = await _context.InventoryBags
+                .Include(b => b.Inventories)
+                .FirstOrDefaultAsync(b => b.Id == request.InventoryBagId);
+            if (bag == null) return NotFound("Bag not found");
+
+            var item = await _context.Items.FindAsync(request.ItemId);
+            if (item == null) return BadRequest("Item not found");
+
+            var existingItem = bag.Inventories.FirstOrDefault(i => i.ItemId == request.ItemId);
+            if (existingItem != null)
+            {
+                existingItem.Quantity += request.Quantity;
+            }
+            else
+            {
+                bag.Inventories.Add(new Inventory
+                {
+                    ItemId = request.ItemId,
+                    Quantity = request.Quantity
+                });
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
 
         public class AddItemRequest
         {
@@ -434,26 +464,7 @@ namespace GIAPI.Controllers
             return Ok();
         }
 
-        private async Task<InventoryBag?> CheckAccess(int bagId, int userId, string? userRole, bool fullEdit = false)
-        {
-            var bag = await _context.InventoryBags
-                .Include(b => b.Inventories)
-                .ThenInclude(i => i.Item)
-                .Include(b => b.Accesses)
-                .Include(b => b.Owner)
-                .FirstOrDefaultAsync(b => b.Id == bagId);
-
-            if (bag == null) return null;
-            if (userRole == "0") return bag; // Admin
-            if (bag.OwnerId == userId) return bag;
-
-            var access = bag.Accesses.FirstOrDefault(a => a.UserId == userId);
-            if (access == null || (fullEdit && access.AccessLevel == AccessLevel.ViewOnly)) return null;
-
-            return bag;
-        }
-
-        // В InventoryController.cs, после AdminTransferBag
+        // Админ: Обновить сумку
         [HttpPost("admin/update-bag")]
         [Authorize(Roles = "0")]
         public async Task<IActionResult> AdminUpdateBag([FromBody] UpdateBagRequest request)
@@ -472,6 +483,25 @@ namespace GIAPI.Controllers
             public int InventoryBagId { get; set; }
             public required string Name { get; set; }
             public required string Rarity { get; set; }
+        }
+
+        private async Task<InventoryBag?> CheckAccess(int bagId, int userId, string? userRole, bool fullEdit = false)
+        {
+            var bag = await _context.InventoryBags
+                .Include(b => b.Inventories)
+                .ThenInclude(i => i.Item)
+                .Include(b => b.Accesses)
+                .Include(b => b.Owner)
+                .FirstOrDefaultAsync(b => b.Id == bagId);
+
+            if (bag == null) return null;
+            if (userRole == "0") return bag; // Admin
+            if (bag.OwnerId == userId) return bag;
+
+            var access = bag.Accesses.FirstOrDefault(a => a.UserId == userId);
+            if (access == null || (fullEdit && access.AccessLevel == AccessLevel.ViewOnly)) return null;
+
+            return bag;
         }
     }
 }

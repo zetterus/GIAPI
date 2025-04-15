@@ -4,7 +4,8 @@
     const today = new Date().toISOString().split('T')[0];
 
     if (lastLoginDate && lastLoginDate !== today) {
-        localStorage.clear();
+        localStorage.removeItem('token');
+        localStorage.removeItem('username');
         window.location.href = '/auth.html';
         return;
     }
@@ -26,10 +27,6 @@
     const addItemSearch = document.getElementById('add-item-search');
     const addItemSuggestions = document.getElementById('add-item-suggestions');
     const addItemSubmit = document.getElementById('add-item-submit');
-    const usernameDisplay = document.getElementById('username-display');
-    const themeToggle = document.getElementById('theme-toggle');
-    const themeList = document.getElementById('theme-list');
-    const logoutBtn = document.getElementById('logout-btn');
     const token = localStorage.getItem('token');
     let currentPage = 1;
     let contentsCurrentPage = 1;
@@ -41,35 +38,6 @@
         window.location.href = '/auth.html';
         return;
     }
-
-    // Отображение имени пользователя
-    usernameDisplay.textContent = localStorage.getItem('username') || 'Logged in as Admin';
-
-    // Инициализация темы
-    const themes = ['light1', 'light2', 'light3', 'dark1', 'dark2', 'dark3'];
-    let currentTheme = localStorage.getItem('theme') || 'light1';
-    document.body.className = currentTheme;
-
-    themeToggle.addEventListener('click', () => {
-        themeList.classList.toggle('hidden');
-    });
-
-    themeList.addEventListener('click', (e) => {
-        const theme = e.target.dataset.theme;
-        if (theme) {
-            currentTheme = theme;
-            document.body.className = theme;
-            localStorage.setItem('theme', theme);
-            themeList.classList.add('hidden');
-        }
-    });
-
-    // Логаут
-    logoutBtn.addEventListener('click', () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('username');
-        window.location.href = '/auth.html';
-    });
 
     // Преобразование accessLevel
     function getAccessLevelDisplay(accessLevel) {
@@ -560,7 +528,7 @@
             return;
         }
         try {
-            const response = await fetch(`/api/items/admin/search?query=${encodeURIComponent(query)}`, {
+            const response = await fetch(`/api/Item/admin/search?query=${encodeURIComponent(query)}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) {
@@ -623,6 +591,7 @@
             if (response.ok) {
                 alert('Item added successfully');
                 addItemForm.reset();
+                addItemSearch.value = '';
                 selectedItemId = null;
                 addItemSubmit.disabled = true;
                 loadBagContents(bagId, contentsCurrentPage);

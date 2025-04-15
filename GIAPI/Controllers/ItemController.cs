@@ -30,6 +30,18 @@ namespace GIAPI.Controllers
             return Ok(items.Select(i => new { i.Id, i.Name }));
         }
 
+        [HttpGet("admin/search")]
+        [Authorize(Roles = "0")]
+        public async Task<IActionResult> AdminSearchItems([FromQuery] string? query)
+        {
+            var items = string.IsNullOrEmpty(query)
+                ? await _context.Items.ToListAsync()
+                : await _context.Items
+                    .Where(i => i.Name.Contains(query))
+                    .ToListAsync();
+            return Ok(items.Select(i => new { i.Id, i.Name }));
+        }
+
         [HttpPost("create")]
         [Authorize(Roles = "0")]
         public async Task<IActionResult> CreateItem([FromBody] CreateItemRequest request)

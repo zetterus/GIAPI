@@ -1,37 +1,14 @@
-﻿<!DOCTYPE html>
+﻿<![CDATA[
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel</title>
     <link rel="stylesheet" href="/css/site.css">
+    <script src="/js/nav.js" defer></script>
 </head>
 <body class="light1">
-    <nav>
-        <div class="nav-left">
-            <ul>
-                <li><a href="/index.html">Home</a></li>
-                <li><a href="/inventory.html">Inventory</a></li>
-                <li><a href="/admin.html">Admin</a></li>
-            </ul>
-        </div>
-        <div class="nav-right">
-            <span id="username-display"></span>
-            <div class="theme-wrapper">
-                <button id="theme-toggle">Toggle Theme</button>
-                <ul id="theme-list" class="theme-list hidden">
-                    <li data-theme="light1">Light 1</li>
-                    <li data-theme="light2">Light 2</li>
-                    <li data-theme="light3">Light 3</li>
-                    <li data-theme="dark1">Dark 1</li>
-                    <li data-theme="dark2">Dark 2</li>
-                    <li data-theme="dark3">Dark 3</li>
-                </ul>
-            </div>
-            <button id="logout-btn">Logout</button>
-        </div>
-    </nav>
-
     <div class="admin-container">
         <div class="left-form">
             <h2>Bags Management</h2>
@@ -138,7 +115,13 @@
         </div>
 
         <div class="right-form">
-            <h2>Add Item to Bag</h2>
+            <h2>
+                Add Item to Bag
+                <span class="tooltip">
+                    <span class="tooltip-icon">?</span>
+                    <span class="tooltip-text">First choose bag at "Bags Management" form</span>
+                </span>
+            </h2>
             <form id="add-item-form" class="vertical-form">
                 <div class="horizontal-form">
                     <input type="text" id="add-item-search" class="input" placeholder="Search item...">
@@ -177,4 +160,4 @@
 
     <script src="/js/admin.js"></script>
 </body>
-</html>
+</html>]]>
