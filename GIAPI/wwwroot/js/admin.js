@@ -1,17 +1,4 @@
 ﻿document.addEventListener('DOMContentLoaded', () => {
-    // Проверка смены дня и очистка localStorage
-    const lastLoginDate = localStorage.getItem('lastLoginDate');
-    const today = new Date().toISOString().split('T')[0];
-
-    if (lastLoginDate && lastLoginDate !== today) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('username');
-        window.location.href = '/auth.html';
-        return;
-    }
-
-    localStorage.setItem('lastLoginDate', today);
-
     const bagSearch = document.getElementById('bag-search');
     const bagSuggestions = document.getElementById('bag-suggestions');
     const bagsTableBody = document.querySelector('#bags-table tbody');

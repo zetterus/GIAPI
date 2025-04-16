@@ -19,20 +19,19 @@ namespace GIAPI.Controllers
             _context = context;
         }
 
-        // Создать сумку
         [HttpPost("create")]
         public async Task<IActionResult> CreateBag([FromBody] CreateBagRequest request)
         {
             var userId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
-            var userRole = User.FindFirst("role")?.Value ?? "2"; // Player = 2
+            var userRole = User.FindFirst("role")?.Value ?? "2";
             if (userId == 0) return Unauthorized("Invalid user ID");
 
             var rarity = Enum.Parse<Rarity>(request.Rarity, true);
             bool isAllowed = userRole switch
             {
-                "0" => true, // Admin
-                "1" => rarity <= Rarity.Legendary, // Moderator
-                "2" => rarity <= Rarity.Epic, // Player
+                "0" => true,
+                "1" => rarity <= Rarity.Legendary,
+                "2" => rarity <= Rarity.Epic,
                 _ => false
             };
 
@@ -55,7 +54,6 @@ namespace GIAPI.Controllers
             public required string Rarity { get; set; }
         }
 
-        // Получить инвентарь
         [HttpGet]
         public async Task<IActionResult> GetInventory()
         {
@@ -75,7 +73,6 @@ namespace GIAPI.Controllers
             return Ok(bags);
         }
 
-        // Получить доступные сумки
         [HttpGet("bags")]
         public async Task<IActionResult> GetBags()
         {
@@ -107,7 +104,6 @@ namespace GIAPI.Controllers
             return Ok(bags);
         }
 
-        // Предоставить доступ к сумке
         [HttpPost("share")]
         public async Task<IActionResult> ShareBag([FromBody] ShareBagRequest request)
         {
@@ -143,7 +139,6 @@ namespace GIAPI.Controllers
             public required string AccessLevel { get; set; }
         }
 
-        // Передать сумку (пользователь)
         [HttpPost("transfer")]
         public async Task<IActionResult> TransferBag([FromBody] TransferBagRequest request)
         {
@@ -169,7 +164,6 @@ namespace GIAPI.Controllers
             public int NewOwnerId { get; set; }
         }
 
-        // Добавить предмет
         [HttpPost("add")]
         public async Task<IActionResult> AddItem([FromBody] AddItemRequest request)
         {
@@ -201,7 +195,6 @@ namespace GIAPI.Controllers
             return Ok();
         }
 
-        // Админ: Добавить предмет
         [HttpPost("admin/add-item")]
         [Authorize(Roles = "0")]
         public async Task<IActionResult> AdminAddItem([FromBody] AddItemRequest request)
@@ -239,7 +232,6 @@ namespace GIAPI.Controllers
             public int Quantity { get; set; }
         }
 
-        // Поиск сумок
         [HttpGet("search-all-bags")]
         public async Task<IActionResult> SearchAllBags([FromQuery] string? query)
         {
@@ -261,7 +253,6 @@ namespace GIAPI.Controllers
             return Ok(bags);
         }
 
-        // Переложить предмет
         [HttpPost("move")]
         public async Task<IActionResult> MoveItem([FromBody] MoveItemRequest request)
         {
@@ -305,7 +296,6 @@ namespace GIAPI.Controllers
             public int Quantity { get; set; }
         }
 
-        // Удалить предмет
         [HttpDelete("remove/{bagId}/{itemId}")]
         public async Task<IActionResult> RemoveItem(int bagId, int itemId, [FromBody] RemoveItemRequest request)
         {
@@ -330,7 +320,6 @@ namespace GIAPI.Controllers
             public int Quantity { get; set; }
         }
 
-        // Удалить сумку (пользователь)
         [HttpDelete("delete/{bagId}")]
         public async Task<IActionResult> DeleteBag(int bagId)
         {
@@ -346,9 +335,8 @@ namespace GIAPI.Controllers
             return Ok();
         }
 
-        // Админ: Поиск сумок
         [HttpGet("admin/search-bags")]
-        [Authorize(Roles = "0")]
+        [Authorize(Roles = "0,1")]
         public async Task<IActionResult> AdminSearchBags([FromQuery] string? query)
         {
             var bags = await _context.InventoryBags
@@ -367,9 +355,8 @@ namespace GIAPI.Controllers
             return Ok(bags);
         }
 
-        // Админ: Список сумок
         [HttpGet("admin/list-bags")]
-        [Authorize(Roles = "0")]
+        [Authorize(Roles = "0,1")]
         public async Task<IActionResult> AdminListBags([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             var totalBags = await _context.InventoryBags.CountAsync();
@@ -398,9 +385,8 @@ namespace GIAPI.Controllers
             return Ok(new { Bags = bags, TotalPages = totalPages });
         }
 
-        // Админ: Содержимое сумки
         [HttpGet("admin/bag-contents/{id}")]
-        [Authorize(Roles = "0")]
+        [Authorize(Roles = "0,1")]
         public async Task<IActionResult> AdminGetBagContents(int id, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             var bag = await _context.InventoryBags
@@ -435,7 +421,6 @@ namespace GIAPI.Controllers
             });
         }
 
-        // Админ: Удалить сумку
         [HttpDelete("admin/delete-bag/{id}")]
         [Authorize(Roles = "0")]
         public async Task<IActionResult> AdminDeleteBag(int id)
@@ -448,7 +433,6 @@ namespace GIAPI.Controllers
             return Ok();
         }
 
-        // Админ: Передать сумку
         [HttpPost("admin/transfer-bag")]
         [Authorize(Roles = "0")]
         public async Task<IActionResult> AdminTransferBag([FromBody] TransferBagRequest request)
@@ -464,7 +448,6 @@ namespace GIAPI.Controllers
             return Ok();
         }
 
-        // Админ: Обновить сумку
         [HttpPost("admin/update-bag")]
         [Authorize(Roles = "0")]
         public async Task<IActionResult> AdminUpdateBag([FromBody] UpdateBagRequest request)
@@ -495,7 +478,8 @@ namespace GIAPI.Controllers
                 .FirstOrDefaultAsync(b => b.Id == bagId);
 
             if (bag == null) return null;
-            if (userRole == "0") return bag; // Admin
+            if (userRole == "0") return bag;
+            if (userRole == "1") return bag;
             if (bag.OwnerId == userId) return bag;
 
             var access = bag.Accesses.FirstOrDefault(a => a.UserId == userId);

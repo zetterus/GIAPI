@@ -3,77 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game API</title>
+    <title>Moderator Panel</title>
     <link rel="stylesheet" href="/css/site.css">
-    <script src="/js/nav.js"></script>
-    <style>
-        .popup {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            padding: 20px;
-            background-color: white;
-            border: 1px solid #ccc;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-        }
-
-            .popup.show {
-                display: block;
-            }
-    </style>
+    <script src="/js/nav.js" defer></script>
 </head>
-<body>
-    <br>
-    <h1>Welcome to Moderator Panel</h1>
-    <p>To be done.</p>
+<body class="light1">
+    <div class="admin-container">
+        <div class="left-form">
+            <h2>Bags Management</h2>
+            <div class="search-container">
+                <input type="text" id="bag-search" class="input" placeholder="Search bags...">
+                <div id="bag-suggestions" class="admin-suggestions"></div>
+            </div>
+            <div class="table-section">
+                <table id="bags-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Owner</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="pagination">
+                <button class="button" id="prev-page">Previous</button>
+                <span id="page-info">Page 1</span>
+                <button class="button" id="next-page">Next</button>
+            </div>
+        </div>
 
-
-    <button id="showPopup">Показать форму</button>
-
-    <div id="myForm" class="popup">
-        <form id="edit-bag-form">
-            <label for="bag-name">Bag Name:</label>
-            <input type="text" id="bag-name" required><br><br>
-
-            <label for="bag-rarity">Rarity:</label>
-            <select id="bag-rarity" required>
-                <option value="Common">Common</option>
-                <option value="Rare">Rare</option>
-                <option value="Epic">Epic</option>
-                <option value="Legendary">Legendary</option>
-            </select><br><br>
-
-            <label for="owner-search">Owner:</label>
-            <input type="text" id="owner-search" placeholder="Search for owner...">
-            <div id="owner-suggestions" class="admin-suggestions"></div><br>
-
-            <label>Accesses:</label>
-            <div id="access-list"></div>
-            <input type="text" id="access-search" placeholder="Add user to access...">
-            <div id="access-suggestions" class="admin-suggestions"></div><br><br>
-
-            <button type="button" id="add-access-btn">Add Access</button><br><br>
-            <button type="submit">Save</button>
-            <button type="button" id="close-popup">Cancel</button>
-        </form>
+        <div class="right-form">
+            <h2>Bag Contents</h2>
+            <div id="active-bag-display">No bag selected</div>
+            <div class="table-section">
+                <table id="bag-contents-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="pagination">
+                <button class="button" id="contents-prev-page">Previous</button>
+                <span id="contents-page-info">Page 1</span>
+                <button class="button" id="contents-next-page">Next</button>
+            </div>
+        </div>
     </div>
 
-    <script>
-        const showPopupButton = document.getElementById('showPopup');
-        const myForm = document.getElementById('myForm');
-        const closePopupButton = document.getElementById('closePopup');
-
-        showPopupButton.addEventListener('click', () => {
-            myForm.classList.add('show');
-        });
-
-        closePopupButton.addEventListener('click', () => {
-            myForm.classList.remove('show');
-        });
-    </script>
-
+    <script src="/js/moderator.js"></script>
 </body>
 </html>

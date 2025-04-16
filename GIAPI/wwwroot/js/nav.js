@@ -1,5 +1,16 @@
 ﻿document.addEventListener('DOMContentLoaded', () => {
     createNavBar();
+
+    // Проверка смены дня и очистка токена/юзернейма
+    const lastLoginDate = localStorage.getItem('lastLoginDate');
+    const today = new Date().toISOString().split('T')[0];
+
+    if (lastLoginDate && lastLoginDate !== today && window.location.pathname !== '/auth.html') {
+        localStorage.removeItem('token');
+        localStorage.removeItem('username');
+        localStorage.setItem('lastLoginDate', today);
+        window.location.href = '/auth.html';
+    }
 });
 
 function createNavBar() {
@@ -175,6 +186,7 @@ function createNavBar() {
             localStorage.setItem('token', data.token);
             localStorage.setItem('username', username);
             localStorage.setItem('role', data.role);
+            localStorage.setItem('lastLoginDate', new Date().toISOString().split('T')[0]);
             updateAuthUI(username, data.role);
             loginForm.reset();
         } catch (error) {
