@@ -85,7 +85,7 @@ namespace GIAPI.Controllers
                 {
                     b.Id,
                     b.Name,
-                    b.Rarity,
+                    Rarity = (int)b.Rarity, // Преобразуем Rarity в числовое значение
                     b.MaxItems,
                     IsOwner = b.OwnerId == userId,
                     AccessLevel = b.Accesses
@@ -103,6 +103,7 @@ namespace GIAPI.Controllers
 
             return Ok(bags);
         }
+
 
         [HttpPost("share")]
         public async Task<IActionResult> ShareBag([FromBody] ShareBagRequest request)
@@ -174,6 +175,9 @@ namespace GIAPI.Controllers
             var bag = await CheckAccess(request.InventoryBagId, userId, userRole, true);
             if (bag == null) return Forbid("Insufficient access");
 
+            if (!bag.CanAddItem(request.Quantity))
+                return BadRequest($"Cannot add items. Bag capacity exceeded. Max items: {bag.MaxItems}");
+
             var item = await _context.Items.FindAsync(request.ItemId);
             if (item == null) return BadRequest("Item not found");
 
@@ -194,6 +198,7 @@ namespace GIAPI.Controllers
             await _context.SaveChangesAsync();
             return Ok();
         }
+
 
         [HttpPost("admin/add-item")]
         [Authorize(Roles = "0")]

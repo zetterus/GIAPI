@@ -15,6 +15,8 @@
     const addItemSuggestions = document.getElementById('add-item-suggestions');
     const addItemSubmit = document.getElementById('add-item-submit');
     const token = localStorage.getItem('token');
+    const tooltipIcon = document.querySelector('.tooltip-icon');
+    const tooltipText = document.querySelector('.tooltip-text');
     let currentPage = 1;
     let contentsCurrentPage = 1;
     const pageSize = 10;
@@ -24,6 +26,22 @@
         alert('Please log in as admin');
         window.location.href = '/auth.html';
         return;
+    }
+
+    if (tooltipIcon && tooltipText) {
+        tooltipIcon.addEventListener('click', () => {
+            const isVisible = tooltipText.style.visibility === 'visible';
+            tooltipText.style.visibility = isVisible ? 'hidden' : 'visible';
+            tooltipText.style.opacity = isVisible ? '0' : '1';
+        });
+
+        // Закрытие подсказки при клике вне её области
+        document.addEventListener('click', (e) => {
+            if (!tooltipIcon.contains(e.target) && !tooltipText.contains(e.target)) {
+                tooltipText.style.visibility = 'hidden';
+                tooltipText.style.opacity = '0';
+            }
+        });
     }
 
     // Преобразование accessLevel
@@ -591,6 +609,7 @@
             alert('Network error while adding item');
         }
     });
+
 
     // Делегирование событий для кнопок в таблице
     bagsTableBody.addEventListener('click', (e) => {

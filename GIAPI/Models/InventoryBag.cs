@@ -12,5 +12,10 @@ namespace GIAPI.Models
         public List<Inventory> Inventories { get; set; } = new();
         public List<InventoryBagAccess> Accesses { get; set; } = new();
         public int MaxItems => (int)Rarity * 10;
+        public bool CanAddItem(int quantityToAdd)
+        {
+            int currentItemCount = Inventories.Sum(i => i.Quantity);
+            return currentItemCount + quantityToAdd <= MaxItems;
+        }
     }
 }
