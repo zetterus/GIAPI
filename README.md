@@ -1,71 +1,80 @@
-# GIAPI - Inventory Management System
+# GIAPI – Game Inventory API
 
-GIAPI (Game Inventory API) is a web-based inventory management system designed for managing in-game items and bags. It provides a user-friendly interface for players to create, manage, and share their inventory bags, as well as interact with other users.
+**GIAPI** (Game Inventory API) is a web application for managing RPG-style inventory. Users can create bags, add items, share their collections, and interact with others. The system supports role-based access with three roles: **Player**, **Moderator**, and **Administrator**.
 
-## Overview
+### 👤 Player
 
-The project is built using `.NET 9` for the backend and JavaScript for the frontend. It includes features such as bag creation, item management, sharing and transferring bags, and real-time updates based on user roles.
+- Create and edit your own bags
+- Add, edit, and remove items within your own bags
+- Share access to your bags with others
+- Transfer ownership of bags to other users
 
-## Installation
+### 🛡️ Moderator
 
-Follow these steps to set up the project locally:
+- All player permissions
+- View all bags and items from all users
 
-1. Clone the repository: git clone https://github.com/your-repo/giapi.git cd giapi
+### ⚙️ Administrator
 
-2. Install dependencies:
-   - For the backend:
-     dotnet restore
-      - For the frontend:
-     Ensure you have a package manager like `npm` or `yarn` installed if needed.
+- All moderator permissions
+- Manage users and their roles
+- Edit or delete any bags or items
 
-3. Build the project:
-   dotnet build
+## 📦 Installation & Launch
 
-4. Run the project:
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/zetterus/GIAPI.git
+   cd GIAPI
+   ```
+
+2. **Restore dependencies**:
+   ```bash
+   dotnet restore
+   ```
+
+3. **Apply database migrations** (if configured):
+   ```bash
+   dotnet ef database update
+   ```
+
+4. **Run the project**:
+   ```bash
    dotnet run
+   ```
 
+5. **Open in browser**:  
+   Navigate to `http://localhost:5000`
 
-5. Access the application in your browser at `http://localhost:5000`.
+## 📁 Project Structure
 
-## Features
+```
+GIAPI/
+├── Controllers/        # API and MVC controllers
+├── Models/             # Data models
+├── Data/               # Database context and migrations
+├── wwwroot/            # Static files
+├── GIAPI.sln           # Solution file
+└── ...
+```
 
-### Implemented Features
-- **Bag Management**:
-  - Create bags with different rarities.
-  - View and manage items in bags.
-  - Activate a specific bag to view its contents.
+## ✅ Contributing
 
-- **Item Management**:
-  - Add items to bags with specified quantities.
-  - Move items between bags.
-  - Remove items from bags.
+We welcome suggestions and contributions!
 
-- **User Interaction**:
-  - Share bags with other users with specific access levels (e.g., view-only, edit).
-  - Transfer ownership of bags to other users.
+1. Fork the repository  
+2. Create a new branch:  
+   `git checkout -b feature/YourFeature`  
+3. Make your changes and commit:  
+   `git commit -m "Add feature"`  
+4. Push your branch:  
+   `git push origin feature/YourFeature`  
+5. Open a pull request
 
-- **Search Functionality**:
-  - Search for items across all bags.
-  - Search for users to share or transfer bags.
+## 📄 License
 
-- **Role-Based Access**:
-  - Different rarity options and permissions based on user roles (e.g., Player, Admin).
+This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
 
-### Planned Features (TODO)
-- Implement detailed logging for user actions.
-- Add support for exporting inventory data to CSV or JSON.
-- Enhance UI/UX with animations and better error handling.
-- Introduce notifications for shared or transferred bags.
-- Add multi-language support for the interface.
+## 📬 Contact
 
-## License
-
-This project is licensed under the **Creative Commons Attribution 4.0 International (CC BY 4.0)**.  
-You are free to:
-- Share — copy and redistribute the material in any medium or format.
-- Adapt — remix, transform, and build upon the material for any purpose, even commercially.
-
-**Under the following terms**:
-- **Attribution** — You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
-
-For more details, see the [license description](https://creativecommons.org/licenses/by/4.0/).   
+If you have suggestions or find a bug, feel free to [create an issue](https://github.com/zetterus/GIAPI/issues) or message [@zetterus](https://github.com/zetterus).
