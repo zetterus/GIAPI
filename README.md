@@ -68,7 +68,7 @@ We welcome suggestions and contributions!
     git checkout -b feature/YourFeature`  
 4. Make your changes and commit:
     ```bash
-    `git commit -m "Add feature"`  
+    git commit -m "Add feature"`  
 6. Push your branch:
     ```bash
     git push origin feature/YourFeature`  
