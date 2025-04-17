@@ -63,13 +63,16 @@ GIAPI/
 We welcome suggestions and contributions!
 
 1. Fork the repository  
-2. Create a new branch:  
-   `git checkout -b feature/YourFeature`  
-3. Make your changes and commit:  
-   `git commit -m "Add feature"`  
-4. Push your branch:  
-   `git push origin feature/YourFeature`  
-5. Open a pull request
+2. Create a new branch:
+    ```bash  
+    git checkout -b feature/YourFeature`  
+4. Make your changes and commit:
+    ```bash
+    `git commit -m "Add feature"`  
+6. Push your branch:
+    ```bash
+    git push origin feature/YourFeature`  
+8. Open a pull request
 
 ## 📄 License
 
